@@ -38,6 +38,7 @@ const theme = createTheme({
       'Fira Sans',
       'Droid Sans',
       'Helvetica Neue',
+      'Inter',
       'sans-serif',
     ].join(','),
   },

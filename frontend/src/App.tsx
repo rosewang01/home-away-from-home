@@ -7,7 +7,6 @@ import { PersistGate } from 'redux-persist/integration/react';
 import theme from './assets/theme';
 import { store, persistor } from './util/redux/store';
 import NotFoundPage from './NotFound/NotFoundPage';
-import HomePage from './Home/HomePage';
 import AdminDashboardPage from './AdminDashboard/AdminDashboardPage';
 import {
   UnauthenticatedRoutesWrapper,
@@ -22,6 +21,7 @@ import EmailResetPasswordPage from './Authentication/EmailResetPasswordPage';
 import ResetPasswordPage from './Authentication/ResetPasswordPage';
 import AlertPopup from './components/AlertPopup';
 import InviteRegisterPage from './Authentication/InviteRegisterPage';
+import HomePage from './Home/HomePage';
 
 function App() {
   return (
@@ -55,7 +55,7 @@ function App() {
                     element={<InviteRegisterPage />}
                   />
                   {/* Routes accessed only if user is authenticated */}
-                  <Route element={<ProtectedRoutesWrapper />}>
+                  <Route>
                     <Route path="/home" element={<HomePage />} />
                   </Route>
                   <Route element={<AdminRoutesWrapper />}>
@@ -66,7 +66,7 @@ function App() {
                   <Route
                     path="/"
                     element={
-                      <DynamicRedirect unAuthPath="/login" authPath="/home" />
+                      <DynamicRedirect unAuthPath="/home" authPath="/home" />
                     }
                   />
 
