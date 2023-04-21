@@ -28,12 +28,12 @@ function StateToolTip({ hoverInfo }: StateToolTipProps) {
           fontSize: '18px',
         }}
       >
-        {hoverInfo.feature.properties.name}
+        {hoverInfo?.feature?.properties.name}
       </Typography>
       <Box sx={{ m: 0.5 }} />
       <Stack direction="row" spacing={1}>
         <Chip
-          label={'Score: ' + hoverInfo.feature.properties.score}
+          label={'Score: ' + hoverInfo?.feature?.properties.score}
           variant="outlined"
           sx={{
             border: '1px solid #3B82F6',
@@ -42,7 +42,7 @@ function StateToolTip({ hoverInfo }: StateToolTipProps) {
           icon={<GradeIcon sx={{ color: '#3B82F6 !important' }} />}
         />
         <Chip
-          label={'Cost: ' + hoverInfo.feature.properties.cost + 'k'}
+          label={'Cost: ' + hoverInfo?.feature?.properties.cost + 'k'}
           variant="outlined"
           sx={{
             border: '1px solid #3B82F6',
@@ -54,7 +54,7 @@ function StateToolTip({ hoverInfo }: StateToolTipProps) {
       <Box sx={{ m: 1 }} />
       <Stack direction="row" spacing={1}>
         <Chip
-          label={'Wage: ' + hoverInfo.feature.properties.salary + 'k'}
+          label={'Wage: ' + hoverInfo?.feature?.properties.salary + 'k'}
           variant="outlined"
           sx={{
             border: '1px solid #3B82F6',
@@ -63,7 +63,7 @@ function StateToolTip({ hoverInfo }: StateToolTipProps) {
           icon={<WorkIcon sx={{ color: '#3B82F6 !important' }} />}
         />
         <Chip
-          label={'Growth: ' + hoverInfo.feature.properties.growth + '%'}
+          label={'Growth: ' + hoverInfo?.feature?.properties.growth + '%'}
           variant="outlined"
           sx={{
             border: '1px solid #3B82F6',

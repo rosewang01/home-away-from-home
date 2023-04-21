@@ -113,12 +113,14 @@ function HomePage() {
   };
 
   const onDrag = (event: any) => {
-    const { clientX, clientY } = event.originalEvent;
-    setHoverInfo({
-      ...hoverInfo,
-      x: clientX,
-      y: clientY,
-    });
+    if (event.originalEvent) {
+      const { clientX, clientY } = event.originalEvent;
+      setHoverInfo({
+        ...hoverInfo,
+        x: clientX,
+        y: clientY,
+      });
+    }
   };
 
   /* The above code is using the `useEffect` hook to fetch data from a URL that contains a GeoJSON file.
@@ -280,7 +282,7 @@ function HomePage() {
       .catch((err) => console.error('Could not load data', err)); // eslint-disable-line
   }, []);
 
-  const selectedState = (hoverInfo && hoverInfo.feature.properties.name) || '';
+  const selectedState = (hoverInfo && hoverInfo?.feature?.properties.name) || '';
   const filterStates = useMemo(
     () => ['in', 'name', selectedState],
     [selectedState],
@@ -699,7 +701,7 @@ function HomePage() {
             </Source>
           </>
         )}
-        {hoverInfo && <StateToolTip hoverInfo={hoverInfo} />}
+        {hoverInfo && hoverInfo.feature && <StateToolTip hoverInfo={hoverInfo} />}
         <NavigationControl position="bottom-right" />
       </Map>
     </Box>
