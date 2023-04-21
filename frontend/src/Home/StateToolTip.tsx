@@ -44,7 +44,7 @@ function StateToolTip({hoverInfo} : StateToolTipProps) {
                 icon={<GradeIcon sx={{ color: '#3B82F6 !important' }} />}
                 />
                 <Chip 
-                    label={"Avg Cost: " + hoverInfo.feature.properties.cost + "k"}
+                    label={"Cost: " + hoverInfo.feature.properties.cost + "k"}
                     variant='outlined'
                     sx={{
                         border: '1px solid #3B82F6',
@@ -59,7 +59,7 @@ function StateToolTip({hoverInfo} : StateToolTipProps) {
                 spacing={1}
             >
                 <Chip 
-                    label={"Top jobs: " + hoverInfo.feature.properties.jobs}
+                    label={"Wage: " + hoverInfo.feature.properties.salary + "k"}
                     variant='outlined'
                     sx={{
                         border: '1px solid #3B82F6',

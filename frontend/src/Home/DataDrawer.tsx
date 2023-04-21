@@ -42,6 +42,7 @@ function DataDrawer({anchor, isToggled, info, cancelButton} : DataDrawerProps) {
     const [companiesData, setCompaniesData] = useState<any[]>([]);
 
     useEffect(() => {
+        console.log(info)
         var job_data : any[] = []
         info?.properties.top_jobs.forEach((job : any, index: any) => {
             job_data.push({
@@ -51,8 +52,6 @@ function DataDrawer({anchor, isToggled, info, cancelButton} : DataDrawerProps) {
             })
         })
         setJobsData(job_data)
-
-        console.log(job_data)
 
         var companies_data : any[] = []
         info?.properties.top_companies.forEach((company : any, index: any) => {
@@ -249,8 +248,61 @@ function DataDrawer({anchor, isToggled, info, cancelButton} : DataDrawerProps) {
                 >
                     Related
             </Typography>
+            <Box sx={{ m: 3}} />
             <Stack direction='row' spacing={3}>
-
+                {info?.properties.related.map((property : any) => (
+                    <DataDrawerCard
+                        label={property.name}
+                        content={
+                            <Stack direction='column' spacing={1}>
+                                <DataDrawerCard
+                                    label='Score'
+                                    content={property.score}
+                                    icon={
+                                        <StarsIcon
+                                            sx={{
+                                                color: '#3B82F6'
+                                            }}
+                                            fontSize='small'
+                                        />
+                                    }
+                                />
+                                <DataDrawerCard
+                                    label='Cost'
+                                    content={'$' + property.cost + "K"}
+                                    icon={
+                                        <PaidIcon
+                                            sx={{
+                                                color: '#3B82F6'
+                                            }}
+                                            fontSize='small'
+                                        />
+                                    }
+                                />
+                                <DataDrawerCard
+                                    label='Avg. Salary'
+                                    content={'$' + property.salary + "K"}
+                                    icon={
+                                        <AutoGraphIcon
+                                            sx={{
+                                                color: '#3B82F6'
+                                            }}
+                                            fontSize='small'
+                                        />
+                                    }
+                                />
+                            </Stack>
+                        }
+                        icon={
+                            <LocationOnIcon
+                                sx={{
+                                    color: '#3B82F6'
+                                }}
+                                fontSize='small'
+                            />
+                        }
+                    />
+                ))}
             </Stack>
         </Box>
     )

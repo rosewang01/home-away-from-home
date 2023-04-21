@@ -83,9 +83,20 @@ function HomePage() {
             );
             feature.properties.top_jobs = JSON.parse(feature.properties.top_jobs)
             feature.properties.top_companies = JSON.parse(feature.properties.top_companies)
+            feature.properties.related = JSON.parse(feature.properties.related)
             setClickInfo(feature)
             setDrawerState(true)
         }
+    }
+
+    const onDrag = (event : any) => {
+        const { clientX, clientY} = event.originalEvent
+        setHoverInfo({
+            ...hoverInfo,
+            x: clientX,
+            y: clientY,
+        }
+        );
     }
 
     /* The above code is using the `useEffect` hook to fetch data from a URL that contains a GeoJSON file.
@@ -147,11 +158,22 @@ function HomePage() {
                         avgSalary: getRandomNum(100, 500),
                     },
                 ]
-                feature.properties.related = [
-                    json.features[getRandomNum(1, 50)],
-                    json.features[getRandomNum(1, 50)],
-                    json.features[getRandomNum(1, 50)],
-                ]
+                feature.properties.related = []
+                for (var i = 0; i < 3; i++) {
+                    var ind = getRandomNum(1, 50);
+                    feature.properties.related.push({
+                        name: json.features[ind].properties.name,
+                        score: getRandomNum(0, 10),
+                        cost: getRandomNum(100, 500),
+                        salary: getRandomNum(100, 1000),
+                    })
+                    // console.log({
+                    //     name: json.features[ind].name,
+                    //     score: json.features[ind].score,
+                    //     cost: json.features[ind].growth,
+                    //     salary: json.features[ind].salary,
+                    // })
+                }
             })
             setAllStateData(json)
             console.log(json)
@@ -220,6 +242,16 @@ function HomePage() {
                         avgSalary: getRandomNum(100, 500),
                     },
                 ]
+                feature.properties.related = []
+                for (var i = 0; i < 3; i++) {
+                    var ind = getRandomNum(1, 50);
+                    feature.properties.related.push({
+                        name: json.features[ind].properties.name,
+                        score: getRandomNum(0, 10),
+                        cost: getRandomNum(100, 500),
+                        salary: getRandomNum(100, 1000),
+                    })
+                }
             })
             setAllCityData(json)
             console.log(json)
@@ -610,6 +642,8 @@ function HomePage() {
             interactiveLayerIds={['data']}
             onMouseMove={onHover}
             onClick={onClick}
+            onDrag={onDrag}
+            onMouseOut={() => setHoverInfo(null)}
             ref={mapRef}
             >
                 {filterOption == 'By State' && (
