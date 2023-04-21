@@ -5,25 +5,22 @@ import type {FillLayer, LineLayer} from 'react-map-gl';
 export const StateDataLayer: FillLayer = {
   id: 'data',
   type: 'fill',
-  minzoom: 3,
-  maxzoom: 9,
   paint: {
-    'fill-color': 'transparent',
     'fill-outline-color': 'rgba(59, 130, 246, 1)',
-    // 'fill-color': {
-    //   property: 'percentile',
-    //   stops: [
-    //     [0, '#3288bd'],
-    //     [1, '#66c2a5'],
-    //     [2, '#abdda4'],
-    //     [3, '#e6f598'],
-    //     [4, '#ffffbf'],
-    //     [5, '#fee08b'],
-    //     [6, '#fdae61'],
-    //     [7, '#f46d43'],
-    //     [8, '#d53e4f']
-    //   ]
-    // },
+    'fill-color': {
+      property: 'score',
+      stops: [
+        [0, '#f5f9ff'],
+        [1, '#cee0fd'],
+        [2, '#a7c7fb'],
+        [3, '#80aef9'],
+        [4, '#5995f7'],
+        [5, '#0b64f4'],
+        [6, '#0b64f4'],
+        [7, '#0b64f4'],
+        [8, '#0b64f4']
+      ]
+    },
     'fill-opacity': 0.5
   }
 };

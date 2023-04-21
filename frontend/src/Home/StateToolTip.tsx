@@ -15,7 +15,7 @@ function StateToolTip({hoverInfo} : StateToolTipProps) {
             sx={{
                 position: 'absolute',
                 left: hoverInfo.x,
-                top: hoverInfo.y + 5,
+                top: hoverInfo.y + 8,
                 background: 'white',
                 border: '1px solid #3B82F6',
                 p: '12px 20px',

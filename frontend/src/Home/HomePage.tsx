@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Map, {NavigationControl, Source, Layer} from 'react-map-gl';
 import { Box, AppBar, Container, Typography, Toolbar, Paper, InputBase, IconButton, Button, Divider, Chip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -19,12 +19,29 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import TuneIcon from '@mui/icons-material/Tune';
 import GradeIcon from '@mui/icons-material/Grade';
 import { StateDataLayer, StateDataLineLayer, StateDataHighlightedLayer } from './StateDataLayer';
+import bbox from '@turf/bbox';
 import StateToolTip from './StateToolTip';
+import type {MapboxStyle, MapRef, MapLayerMouseEvent} from 'react-map-gl';
+import DataDrawer from './DataDrawer';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { CatchingPokemonSharp } from '@mui/icons-material';
+import { features } from 'process';
 
+/* The above code is a React component that renders a map with different layers based on the selected
+filter option. It fetches data from two different URLs containing GeoJSON files, modifies the data
+by adding new properties to each feature object, and sets the modified data as state variables. It
+also includes a search bar, a submit button, and a menu button in the app bar. When a feature is
+clicked on the map, a data drawer is opened with information about the clicked feature. The
+component uses various React hooks such as useState, useRef, useCallback, and useEffect to manage
+state and handle events. */
 function HomePage() {
     const [filterOption, setFilterOption] = useState('By State');
-    const [allData, setAllData] = useState();
+    const [allStateData, setAllStateData] = useState();
+    const [allCityData, setAllCityData] = useState();
     const [hoverInfo, setHoverInfo] = useState<any>();
+    const [clickInfo, setClickInfo] = useState<any>();
+    const mapRef = useRef<any>();
+    const [drawerState, setDrawerState] = useState(false);
 
 
     const getRandomNum = (min: number, max: number) : number => {
@@ -43,6 +60,38 @@ function HomePage() {
         setHoverInfo(hoveredFeature && {feature: hoveredFeature, x, y});
     }, []);
 
+    /**
+     * The function takes an event and uses it to calculate the bounding box of a feature, fit the map
+     * to that bounding box, and update state variables.
+     * @param {any} event - The event parameter is an object that contains information about the event
+     * that triggered the onClick function. It is of type "any", which means it can contain any type of
+     * data. In this case, it is likely an event object from a map library or API that contains
+     * information about the clicked feature.
+     */
+    const onClick = (event: any) => {
+        const feature = event.features[0];
+        if (feature) {
+            // calculate the bounding box of the feature
+            const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+
+            mapRef?.current?.fitBounds(
+            [
+                [minLng, minLat],
+                [maxLng, maxLat]
+            ],
+            {duration: 1000}
+            );
+            feature.properties.top_jobs = JSON.parse(feature.properties.top_jobs)
+            feature.properties.top_companies = JSON.parse(feature.properties.top_companies)
+            setClickInfo(feature)
+            setDrawerState(true)
+        }
+    }
+
+    /* The above code is using the `useEffect` hook to fetch data from a URL that contains a GeoJSON file.
+    Once the data is fetched, it is parsed as JSON and then modified by adding new properties to each
+    feature object. The modified data is then set as the state using the `setAllStateData` function. The
+    `console.log` statement is used to log the modified data to the console. */
     useEffect(() => {
         /* global fetch */
         fetch(
@@ -50,13 +99,129 @@ function HomePage() {
         )
           .then(resp => resp.json())
           .then(json => {
-            json.features.forEach((feature : any) => {
+            json.features.forEach((feature : any, index: any) => {
                 feature.properties.score = getRandomNum(0, 10);
                 feature.properties.cost = getRandomNum(100, 500);
                 feature.properties.jobs = "SWE, PM, DS"
                 feature.properties.growth = getRandomNum(1, 100);
+                feature.properties.H1B_volume = getRandomNum(1000, 5000);
+                feature.properties.H1B_success_rate = getRandomNum(1, 100);
+                feature.properties.salary = getRandomNum(100, 1000);
+                feature.properties.top_jobs = [
+                    { 
+                        name: 'SWE',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'PM',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Technical PM',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Accountant',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                ]
+                feature.properties.top_companies = [
+                    { 
+                        name: 'Amazon',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Facebook',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Netflix',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Jane Street',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                ]
+                feature.properties.related = [
+                    json.features[getRandomNum(1, 50)],
+                    json.features[getRandomNum(1, 50)],
+                    json.features[getRandomNum(1, 50)],
+                ]
             })
-            setAllData(json)
+            setAllStateData(json)
+            console.log(json)
+        })
+          .catch(err => console.error('Could not load data', err)); // eslint-disable-line
+    }, []);
+
+
+    /* The above code is using the `useEffect` hook to fetch data from a JSON file containing
+    information about cities. It then modifies the data by adding new properties to each city
+    object, such as a random score, cost, jobs, and growth. Finally, it sets the modified data to
+    the state variable `allCityData` and logs it to the console. */
+    useEffect(() => {
+        /* global fetch */
+        fetch(
+          'https://raw.githubusercontent.com/trangiabach/cities-geojson-small/main/cities-small.json'
+        )
+          .then(resp => resp.json())
+          .then(json => {
+            json.features.forEach((feature : any) => {
+                feature.properties.name = feature.properties.NAME;
+                feature.properties.score = getRandomNum(0, 10);
+                feature.properties.cost = getRandomNum(100, 500);
+                feature.properties.jobs = "SWE, PM, DS"
+                feature.properties.growth = getRandomNum(1, 100);
+                feature.properties.H1B_volume = getRandomNum(1000, 5000);
+                feature.properties.H1B_success_rate = getRandomNum(1, 100);
+                feature.properties.salary = getRandomNum(100, 1000);
+                feature.properties.top_jobs = [
+                    { 
+                        name: 'SWE',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'PM',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Technical PM',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Accountant',
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                ]
+                feature.properties.top_companies = [
+                    { 
+                        name: 'Amazon',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Facebook',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Netflix',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                    { 
+                        name: 'Jane Street',
+                        success_rate: getRandomNum(1, 100),
+                        avgSalary: getRandomNum(100, 500),
+                    },
+                ]
+            })
+            setAllCityData(json)
             console.log(json)
         })
           .catch(err => console.error('Could not load data', err)); // eslint-disable-line
@@ -65,19 +230,22 @@ function HomePage() {
     const selectedState = (hoverInfo && hoverInfo.feature.properties.name) || '';
     const filterStates = useMemo(() => ['in', 'name', selectedState], [selectedState]);
 
-    useEffect(() => {
-        switch (filterOption) {
-            case 'By State':
+    // useEffect(() => {
+    //     switch (filterOption) {
+    //         case 'By State':
 
-                break;
-        }
-    }, [filterOption])
+    //             break;
+    //     }
+    // }, [filterOption])
 
 
-    const data = useMemo(() => {
-        return allData;
-    }, [allData]);
+    const stateData = useMemo(() => {
+        return allStateData;
+    }, [allStateData]);
 
+    const cityData = useMemo(() => {
+        return allCityData;
+    }, [allCityData]);
 
     return (
         <Box>
@@ -92,7 +260,7 @@ function HomePage() {
                         background: 'white',
                         height: '80px',
                         boxShadow: 'rgb(0 0 0 / 8%) 0 1px 0',
-                        zIndex: '2',
+                        zIndex: '3',
                         paddingLeft: '0 !important',
                         paddingRight: '0 !important',
                         maxWidth: '100% !important'
@@ -229,7 +397,7 @@ function HomePage() {
                         background: 'white',
                         height: '90px',
                         boxShadow: 'rgb(0 0 0 / 8%) 0 1px 0',
-                        zIndex: '1',
+                        zIndex: '2',
                         paddingLeft: '0 !important',
                         paddingRight: '0 !important',
                         maxWidth: '100% !important',
@@ -406,23 +574,60 @@ function HomePage() {
                         </Box>
                     </Toolbar>
                 </Container>
+                <DataDrawer
+                    anchor='left'
+                    isToggled={drawerState}
+                    info={clickInfo}
+                    cancelButton={
+                        <IconButton
+                        onClick={() => {
+                           setDrawerState(false)
+                        }}
+                        sx={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                        }}
+                    >
+                        <CancelIcon 
+                            sx={{
+                                color: '#3B82F6',
+                            }}
+                            fontSize='large'
+                        />
+                    </IconButton>
+                    }
+                />
             </AppBar>
             <Map 
-                initialViewState={{
-                    longitude: -122.4,
-                    latitude: 37.8,
-                    zoom: 5
-                }}
-                style={{width: '100vw', height: '100vh'}}
-                mapStyle="mapbox://styles/mapbox/streets-v12?optimize=true"
-                interactiveLayerIds={['data']}
-                onMouseMove={onHover}
+            initialViewState={{
+                longitude: -122.4,
+                latitude: 37.8,
+                zoom: 3
+            }}
+            style={{width: '100vw', height: '100vh'}}
+            mapStyle="mapbox://styles/mapbox/streets-v12?optimize=true"
+            interactiveLayerIds={['data']}
+            onMouseMove={onHover}
+            onClick={onClick}
+            ref={mapRef}
             >
-                <Source type="geojson" data={data}>
-                    <Layer beforeId="waterway-label" {...StateDataLayer} />
-                    <Layer beforeId="waterway-label" {...StateDataLineLayer} />
-                    <Layer beforeId="waterway-label" {...StateDataHighlightedLayer} filter={filterStates}/>
-                </Source>
+                {filterOption == 'By State' && (
+                    <Source type="geojson" data={stateData}>
+                        <Layer beforeId="waterway-label" {...StateDataLayer} />
+                        <Layer beforeId="waterway-label" {...StateDataLineLayer} />
+                        <Layer beforeId="waterway-label" {...StateDataHighlightedLayer} filter={filterStates}/>
+                    </Source>
+                )}
+                {filterOption == 'By City' && (
+                    <>
+                        <Source type="geojson" data={cityData}>
+                            <Layer beforeId="waterway-label" {...StateDataLayer} />
+                            <Layer beforeId="waterway-label" {...StateDataLineLayer} />
+                            <Layer beforeId="waterway-label" {...StateDataHighlightedLayer} filter={filterStates}/>
+                        </Source>
+                    </>
+                )}
                 {hoverInfo && (
                     <StateToolTip hoverInfo={hoverInfo} />
                 )}
