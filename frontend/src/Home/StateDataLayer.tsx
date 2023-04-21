@@ -1,5 +1,5 @@
 /* eslint-disable */
-import type {FillLayer, LineLayer} from 'react-map-gl';
+import type { FillLayer, LineLayer } from 'react-map-gl';
 
 // For more information on data-driven styles, see https://www.mapbox.com/help/gl-dds-ref/
 export const StateDataLayer: FillLayer = {
@@ -18,11 +18,11 @@ export const StateDataLayer: FillLayer = {
         [5, '#0b64f4'],
         [6, '#0b64f4'],
         [7, '#0b64f4'],
-        [8, '#0b64f4']
-      ]
+        [8, '#0b64f4'],
+      ],
     },
-    'fill-opacity': 0.5
-  }
+    'fill-opacity': 0.5,
+  },
 };
 
 export const StateDataLineLayer: LineLayer = {
@@ -30,8 +30,8 @@ export const StateDataLineLayer: LineLayer = {
   type: 'line',
   paint: {
     'line-color': 'rgba(59, 130, 246, 0.7)',
-    'line-width': 2
-  }
+    'line-width': 2,
+  },
 };
 
 export const StateDataHighlightedLayer: FillLayer = {
@@ -41,6 +41,6 @@ export const StateDataHighlightedLayer: FillLayer = {
   paint: {
     'fill-outline-color': '#484896',
     'fill-color': '#FFFFFF',
-    'fill-opacity': 0.7
-  }
+    'fill-opacity': 0.7,
+  },
 };
