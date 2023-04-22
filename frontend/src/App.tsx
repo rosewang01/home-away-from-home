@@ -22,6 +22,7 @@ import ResetPasswordPage from './Authentication/ResetPasswordPage';
 import AlertPopup from './components/AlertPopup';
 import InviteRegisterPage from './Authentication/InviteRegisterPage';
 import HomePage from './Home/HomePage';
+import './index.css';
 
 function App() {
   return (

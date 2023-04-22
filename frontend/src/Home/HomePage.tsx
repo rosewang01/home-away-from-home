@@ -19,6 +19,7 @@ import {
   Button,
   Divider,
   Chip,
+  Stack,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SendIcon from '@mui/icons-material/Send';
@@ -47,8 +48,8 @@ import type { MapboxStyle, MapRef, MapLayerMouseEvent } from 'react-map-gl';
 import DataDrawer from './DataDrawer';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { CatchingPokemonSharp } from '@mui/icons-material';
-import { features } from 'process';
-
+import GeocoderControl from './GeoCoder';
+import AdsClickIcon from '@mui/icons-material/AdsClick';
 /* The above code is a React component that renders a map with different layers based on the selected
 filter option. It fetches data from two different URLs containing GeoJSON files, modifies the data
 by adding new properties to each feature object, and sets the modified data as state variables. It
@@ -64,6 +65,10 @@ function HomePage() {
   const [clickInfo, setClickInfo] = useState<any>();
   const mapRef = useRef<any>();
   const [drawerState, setDrawerState] = useState(false);
+  const [addresses, setAddresses] = useState<any>([]);
+  const [addressInput, setAddressInput] = useState('');
+  const [addressTarget, setAddressTarget] = useState<any>();
+  const [isAddressLoading, setIsAddressLoading] = useState(false)
 
   const getRandomNum = (min: number, max: number): number => {
     return Math.round(Math.random() * (max - min) + min);
@@ -122,6 +127,14 @@ function HomePage() {
       });
     }
   };
+
+  const onInputChange = (event : any) => {
+    setAddressInput(event.target.value);
+  }
+
+  useEffect(() => {
+    console.log(addresses)
+  }, [addresses])
 
   /* The above code is using the `useEffect` hook to fetch data from a URL that contains a GeoJSON file.
     Once the data is fetched, it is parsed as JSON and then modified by adding new properties to each
@@ -351,68 +364,150 @@ function HomePage() {
             >
               Home Away <br /> From Home
             </Typography>
+            <Box
+              sx={{
+                mx: 'auto',
+                position: 'relative',
+                minWidth: '360px',
+                minHeight: '50px'
+              }}
+            >
             <Paper
               component="form"
               sx={{
+                position: 'absolute',
+                top: 0,
+                left: '50%',
+                transform: 'translate(-50%, 0)',
                 p: '1px 4px',
+                paddingRight: '8px',
                 display: 'flex',
                 alignItems: 'center',
+                flexDirection:  'column',
                 border: '1px solid #3B82F6',
                 borderRadius: '40px',
                 boxShadow:
                   '0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
                 minWidth: '360px',
                 alignSelf: 'center',
-                mx: 'auto',
-                transition: 'box-shadow 0.2s ease',
+                transition: 'all 0.2s ease',
                 ':hover': {
                   boxShadow: '0 2px 4px rgba(0,0,0,0.18)',
+                  minWidth: '500px',
+                  cursor: 'pointer'
                 },
               }}
             >
-              <Typography
+              <Box
                 sx={{
-                  ml: 2,
-                  fontWeight: '500',
-                  fontSize: '14px',
-                  color: '#3B82F6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%'
                 }}
               >
-                Anywhere
-              </Typography>
-              <Divider
-                sx={{
-                  height: 28,
-                  ml: 1,
-                  background: '#3B82F6',
-                }}
-                orientation="vertical"
-              />
-              <InputBase
-                sx={{
-                  ml: 1,
-                  flex: 1,
-                  fontSize: '14px',
-                }}
-                placeholder="Search your dream place"
-              />
-              <IconButton
-                sx={{
-                  background: '#3B82F6',
-                  margin: '5px',
-                  ':hover': {
-                    background: '#3B82F6',
-                  },
-                }}
-                size="small"
-              >
-                <SearchIcon
+                <Typography
                   sx={{
-                    color: 'white',
+                    ml: 2,
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    color: '#3B82F6',
                   }}
+                >
+                  Anywhere
+                </Typography>
+                <Divider
+                  sx={{
+                    height: 28,
+                    ml: 1,
+                    background: '#3B82F6',
+                  }}
+                  orientation="vertical"
                 />
-              </IconButton>
+                <InputBase
+                  sx={{
+                    ml: 1,
+                    flex: 1,
+                    fontSize: '14px',
+                  }}
+                  placeholder="Search your dream place"
+                  onChange={onInputChange}
+                  value={addressInput}
+                />
+                <IconButton
+                  sx={{
+                    background: '#3B82F6',
+                    margin: '5px',
+                    ':hover': {
+                      background: '#3B82F6',
+                    },
+                  }}
+                  size="small"
+                >
+                  <SearchIcon
+                    sx={{
+                      color: 'white',
+                    }}
+                  />
+                </IconButton>
+              </Box>
+              <Stack
+              sx={{
+                width: '100%',
+                pt: (addresses.length != 0) ? 1 : 0,
+                pb: (addresses.length != 0) ? 1 : 0,
+                display: (addressInput != addressTarget?.address_name) ? 'flex' : 'none'
+              }}
+              >
+                {addresses.map((address : any) => (
+                  <Box
+                  sx={{
+                    display: 'flex',
+                    textAlign: 'left',
+                    width: '100%',
+                    alignItems: 'center',
+                    p: '5px 15px',
+                    ":hover": {
+                      color: '#3B82F6',
+                      '.address-details-text': {
+                        color: '#3B82F6',
+                      }
+                    }
+                  }}
+                  onClick={() => {
+                    setAddressTarget(address)
+                    setAddresses([])
+                    setAddressInput(address.address_name)
+                  }}
+                  >
+                    <AdsClickIcon
+                      sx={{
+                        color: '#3B82F6'
+                      }}
+                    />
+                    <Box sx={{ m: 1 }} />
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: '16px'
+                        }}
+                      >
+                        {address.address_name}
+                      </Typography>
+                      <Typography
+                        className='address-details-text'
+                        sx={{
+                          fontSize: '12px',
+                          color: 'grey'
+                        }}
+                      >
+                        {address.address_details}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
             </Paper>
+            </Box>
             <Button
               endIcon={<SendIcon />}
               size="small"
@@ -703,6 +798,14 @@ function HomePage() {
         )}
         {hoverInfo && hoverInfo.feature && <StateToolTip hoverInfo={hoverInfo} />}
         <NavigationControl position="bottom-right" />
+        <GeocoderControl 
+          mapboxAccessToken={'pk.eyJ1IjoiYmFjaHRyYW4yMiIsImEiOiJjbGdtcm9heXMwM2x1M3BwaHExcHgza3A2In0.HXUhBETMbJMJFTEu11dBWw'} 
+          position="bottom-left" 
+          setResults={setAddresses}
+          addressInput={addressInput}
+          queryResult={addressTarget}
+          setLoading={setIsAddressLoading}
+        />
       </Map>
     </Box>
   );

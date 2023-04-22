@@ -11,6 +11,10 @@ import ApprovalIcon from '@mui/icons-material/Approval';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MoneyIcon from '@mui/icons-material/Money';
 import { DataGrid } from '@mui/x-data-grid';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
+import ApartmentIcon from '@mui/icons-material/Apartment';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 type Anchor = 'top' | 'left' | 'bottom' | 'right';
 
@@ -46,7 +50,6 @@ function DataDrawer({
   const [companiesData, setCompaniesData] = useState<any[]>([]);
 
   useEffect(() => {
-    console.log(info);
     var job_data: any[] = [];
     info?.properties.top_jobs.forEach((job: any, index: any) => {
       job_data.push({
@@ -67,12 +70,11 @@ function DataDrawer({
       });
     });
     setCompaniesData(companies_data);
-
-    console.log(companies_data);
   }, [info]);
 
   const drawer = (anchor: Anchor, info: any) => (
     <Box
+      className='drawer-content'
       sx={{
         zIndex: 1,
         width: '650px',
@@ -111,13 +113,27 @@ function DataDrawer({
         </Typography>
       </Box>
       <Box sx={{ m: 5 }} />
-      <Typography
+      <Stack
+        direction='row'
         sx={{
-          fontSize: '25px',
+          alignItems: 'center'
         }}
+        spacing={1}
       >
-        Data Points
-      </Typography>
+        <BarChartIcon
+          sx={{
+            color: '#3B82F6',
+          }}
+          fontSize="large"
+        />
+        <Typography
+          sx={{
+            fontSize: '25px',
+          }}
+        >
+          Data Points
+        </Typography>
+      </Stack>
       <Box sx={{ m: 2 }} />
       <Stack direction="row" spacing={3}>
         <DataDrawerCard
@@ -197,13 +213,27 @@ function DataDrawer({
         />
       </Stack>
       <Box sx={{ m: 5 }} />
-      <Typography
+      <Stack
+        direction='row'
         sx={{
-          fontSize: '25px',
+          alignItems: 'center'
         }}
+        spacing={1}
       >
-        Top Jobs
-      </Typography>
+        <AssuredWorkloadIcon
+          sx={{
+            color: '#3B82F6',
+          }}
+          fontSize="large"
+        />
+        <Typography
+          sx={{
+            fontSize: '25px',
+          }}
+        >
+          Top Jobs
+        </Typography>
+      </Stack>
       <Box sx={{ m: 3 }} />
       <Box>
         <DataGrid
@@ -221,13 +251,27 @@ function DataDrawer({
         />
       </Box>
       <Box sx={{ m: 5 }} />
-      <Typography
+      <Stack
+        direction='row'
         sx={{
-          fontSize: '25px',
+          alignItems: 'center'
         }}
+        spacing={1}
       >
-        Top Employers
-      </Typography>
+        <ApartmentIcon
+          sx={{
+            color: '#3B82F6',
+          }}
+          fontSize="large"
+        />
+        <Typography
+          sx={{
+            fontSize: '25px',
+          }}
+        >
+          Top Employers
+        </Typography>
+      </Stack>
       <Box sx={{ m: 3 }} />
       <Box>
         <DataGrid
@@ -246,13 +290,27 @@ function DataDrawer({
         />
       </Box>
       <Box sx={{ m: 3 }} />
-      <Typography
+      <Stack
+        direction='row'
         sx={{
-          fontSize: '25px',
+          alignItems: 'center'
         }}
+        spacing={1}
       >
-        Related
-      </Typography>
+        <AccountTreeIcon
+          sx={{
+            color: '#3B82F6',
+          }}
+          fontSize="large"
+        />
+        <Typography
+          sx={{
+            fontSize: '25px',
+          }}
+        >
+          Related
+        </Typography>
+      </Stack>
       <Box sx={{ m: 3 }} />
       <Stack direction="row" spacing={3}>
         {info?.properties.related.map((property: any) => (
@@ -326,6 +384,9 @@ function DataDrawer({
         '.MuiDrawer-paper': {
           paddingTop: '170px',
         },
+      }}
+      ModalProps={{
+        keepMounted: false,
       }}
     >
       {drawer(anchor, info)}

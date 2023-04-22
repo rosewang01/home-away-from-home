@@ -5,3 +5,7 @@
   align-items: center;
   justify-content: center;
 }
+
+.mapboxgl-ctrl-geocoder {
+  display: none !important;
+}
