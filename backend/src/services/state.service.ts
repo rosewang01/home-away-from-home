@@ -25,6 +25,7 @@ const getAllStates = async (): Promise<IState[]> => {
   }
 
   const statesRaw = await sqlQuery(`
+<<<<<<< HEAD
   WITH zip_code_housing_data (zip_code, average_housing_price, average_housing_price_growth) AS (
     SELECT zip_code, AVG(median_sale_price), AVG(median_sale_price_yoy) FROM housing_data
     GROUP BY zip_code
@@ -73,6 +74,11 @@ const getAllStates = async (): Promise<IState[]> => {
   await redisSet("states/all", JSON.stringify(processedStates));
 
   return processedStates;
+=======
+    SELECT * FROM state
+  `);
+  return statesRaw as IState[];
+>>>>>>> 1117913 (models)
 };
 
 const getStatesWithJobFilter = async (jobFilter: string): Promise<IState[]> => {
