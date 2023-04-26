@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import type IEmployer from "./employer.model.js";
 import type IJob from "./job.model.js";
 
@@ -21,3 +22,13 @@ interface ICity {
 }
 
 export default ICity;
+=======
+interface ICity {
+    city_name: string;
+    state_code: string;
+    metro_region: string;
+    metro_region_state_code: string;
+}
+
+export default ICity
+>>>>>>> 1117913 (models)
