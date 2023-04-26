@@ -13,7 +13,8 @@ module.exports = {
 
       extends: [
         'plugin:@typescript-eslint/recommended',
-        'plugin:@typescript-eslint/recommended-requiring-type-checking'
+        'plugin:@typescript-eslint/recommended-requiring-type-checking',
+        "@typescript-eslint/parser"
       ],
 
       parserOptions: {
@@ -32,5 +33,5 @@ module.exports = {
         "checksVoidReturn": false
       }
     ]
-  }
+  },
 }
