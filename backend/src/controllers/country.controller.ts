@@ -1,32 +1,29 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-const getAllCityDataByState = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { state_id } = req.params;
+const getAllStateDataByCountry = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   return;
 };
 
 const getBestCitiesByJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { state_id, job } = req.params;
+  const { job } = req.params;
   return;
 };
 
 const getBestCitiesByEmployer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { state_id, employer } = req.params;
+  const { employer } = req.params;
   return;
 };
 
 const getBestCitiesByGrowth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { state_id } = req.params;
   return;
 };
 
 const getBestCitiesByDebt = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { state_id } = req.params;
   return;
 };
 
 export {
-  getAllCityDataByState,
+  getAllStateDataByCountry,
   getBestCitiesByJob,
   getBestCitiesByEmployer,
   getBestCitiesByGrowth,

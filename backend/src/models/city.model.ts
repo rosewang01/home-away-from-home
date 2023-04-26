@@ -1,9 +1,9 @@
 import IEmployer from "./employer.model.js";
 import IJob from "./job.model.js";
 
-interface IState {
-  state_code: string;
-  state_name: string;
+interface ICity {
+  city_name: string;
+  city_state_code: string;
   score: number;
 
   average_housing_price: number;
@@ -18,4 +18,4 @@ interface IState {
   h1b_success_rate: number;
 }
 
-export default IState;
+export default ICity;
