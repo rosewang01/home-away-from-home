@@ -1,5 +1,5 @@
-import IEmployer from "./employer.model.js";
-import IJob from "./job.model.js";
+import type IEmployer from "./employer.model.js";
+import type IJob from "./job.model.js";
 
 interface IState {
   state_code: string;
@@ -11,11 +11,13 @@ interface IState {
 
   num_jobs: number;
   average_salary: number;
-  top_jobs: Array<IJob>;
-  top_employers: Array<IEmployer>;
+  top_jobs: IJob[];
+  top_employers: IEmployer[];
 
   h1b_volume: number;
   h1b_success_rate: number;
+
+  similar_states: string[];
 }
 
 export default IState;
