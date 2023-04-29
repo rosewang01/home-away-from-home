@@ -1,6 +1,7 @@
 import { type Router } from "express";
 import { stateRouter } from "./state.route.js";
 import { countryRouter } from "./country.route.js";
+import {cityRouter} from "./city.route.js";
 
 const routers: Array<{ prefix: string; router: Router }> = [
   {
@@ -8,7 +9,7 @@ const routers: Array<{ prefix: string; router: Router }> = [
     router: countryRouter,
   },
   {
-    prefix: "/api/state/:state_id",
+    prefix: "/api/state/:state",
     router: stateRouter,
   },
   {
