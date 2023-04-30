@@ -7,12 +7,13 @@ Backend:
 2. Ensure the local redis instance is running
    1. On Mac/Linux run `sudo systemctl enable redis && sudo systemctl start redis`
 3. Create a `.env` file in the `backend` directory with the following contents:
-    ```
-    AWS_DB_ENDPOINT=xxxxxxxxxxxxx.us-east-1.rds.amazonaws.com
-    AWS_DB_PORT=3306
-    AWS_DB_USERNAME=admin
-    AWS_DB_PASSWORD=xxxxxxxxxxxxx
-    DB_NAME=home_away_from_home
-    ```
+   ```
+   AWS_DB_ENDPOINT=xxxxxxxxxxxxx.us-east-1.rds.amazonaws.com
+   AWS_DB_PORT=3306
+   AWS_DB_USERNAME=admin
+   AWS_DB_PASSWORD=xxxxxxxxxxxxx
+   DB_NAME=home_away_from_home
+   ENABLE_REDIS=false
+   ```
 4. Run `cd backend && yarn install`
 5. Run `yarn start`
