@@ -13,7 +13,7 @@ Backend:
    AWS_DB_USERNAME=admin
    AWS_DB_PASSWORD=xxxxxxxxxxxxx
    DB_NAME=home_away_from_home
-   ENABLE_REDIS=false
+   REDIS_ENABLED=false
    ```
 4. Run `cd backend && yarn install`
 5. Run `yarn start`
