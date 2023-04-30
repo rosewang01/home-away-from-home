@@ -1,5 +1,5 @@
 import { type NextFunction, type Request, type Response } from "express";
-import { getAllZipCodes, getBestCostZipCodes, getBestGrowthZipCodes } from "../services/city.service.js";
+import { getAllZipCodes, getBestCostZipCodes, getBestGrowthZipCodes } from "../services/zipcode.service.js";
 
 const getAllZipCodeDataByCity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { city_name } = req.params;
