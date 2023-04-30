@@ -1,8 +1,10 @@
-import { createClient } from "redis";
+import {createClient, type RedisClientType} from "redis";
 
-const client = createClient();
+let client: RedisClientType | null = null;
 
 if (process.env.REDIS_ENABLED !== "false") {
+  client = createClient();
+  
   client.on("error", (error: string) => {
     console.error(`redis client error: ${error}`);
   });
@@ -12,14 +14,14 @@ if (process.env.REDIS_ENABLED !== "false") {
 
 
 const redisGet = async (key: string): Promise<string | null> => {
-  if (process.env.REDIS_ENABLED === "false") {
+  if (client === null) {
     return null;
   }
   return await client.get(key);
 }
 
 const redisSet = async (key: string, value: string): Promise<void> => {
-  if (process.env.REDIS_ENABLED === "false") {
+  if (client === null) {
     return;
   }
   await client.set(key, value);
