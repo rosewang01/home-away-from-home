@@ -3,19 +3,20 @@ import type ICity from "../models/city.model.js";
 import {sqlQuery} from "../utils/sql.js";
 
 const addSimilarCities = (cities: ICity[]): ICity[] => {
-  const sortedCities = cities.sort((a, b) => b.num_jobs - a.num_jobs);
-  return cities.map((city: ICity) => {
-    let index = Math.max(sortedCities.findIndex((c) => c.city_name === city.city_name) - 2, 0);
-    while (city.similar_cities.length < 3 && index < sortedCities.length - 1) {
-      const similarCity = sortedCities[index];
-      if (similarCity.city_name !== city.city_name) {
-        city.similar_cities.push(similarCity.city_name);
-      }
+  // const sortedCities = cities.sort((a, b) => b.num_jobs - a.num_jobs);
+  // return cities.map((city: ICity) => {
+  //   let index = Math.max(sortedCities.findIndex((c) => c.city_name === city.city_name) - 2, 0);
+  //   while (city.similar_cities.length < 3 && index < sortedCities.length - 1) {
+  //     const similarCity = sortedCities[index];
+  //     if (similarCity.city_name !== city.city_name) {
+  //       city.similar_cities.push(similarCity.city_name);
+  //     }
 
-      index++;
-    }
-    return city;
-  })
+  //     index++;
+  //   }
+  //   return city;
+  // })
+  return cities
 }
 
 const getAllCities = async (stateCode: string): Promise<ICity[]> => {
