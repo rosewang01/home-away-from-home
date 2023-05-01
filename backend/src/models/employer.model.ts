@@ -1,9 +1,8 @@
 interface IEmployer {
   employer_name: string;
 
-  h1b_success_rate: number | null;
-  average_salary: number | null;
-  count: number | null;
+  h1b_success_rate: number;
+  average_salary: number;
 }
 
 export default IEmployer;

@@ -1,7 +1,7 @@
 import { sqlQuery } from "../utils/sql.js";
-import type IEmployer from "../models/employer.model.js";
-import type ICity from "../models/city.model.js";
 import type IJob from "../models/job.model.js";
+import IEmployerCount from "../models/employerCount.model.js";
+import ICityCount from "../models/cityCount.model.js";
 
 const getAllJobsData = async (): Promise<IJob[]> => {
     const jobsRaw = await sqlQuery(`
@@ -18,7 +18,7 @@ const getAllJobsData = async (): Promise<IJob[]> => {
     return jobsRaw as IJob[];
 };
 
-const getBestEmployersByJobData = async (job_name: string): Promise<IEmployer[]> => {
+const getBestEmployersByJobData = async (job_name: string): Promise<IEmployerCount[]> => {
     const jobsRaw = await sqlQuery(`
         SELECT emp_name AS employer_name, COUNT(*) AS count
         FROM h1b_case
@@ -27,10 +27,10 @@ const getBestEmployersByJobData = async (job_name: string): Promise<IEmployer[]>
         ORDER BY count DESC
         LIMIT 5;
     `);
-    return jobsRaw as IEmployer[];
+    return jobsRaw as IEmployerCount[];
 };
 
-const getBestCitiesByJobData = async (job_name: string): Promise<ICity[]> => {
+const getBestCitiesByJobData = async (job_name: string): Promise<ICityCount[]> => {
     const jobsRaw = await sqlQuery(`
         SELECT work_city AS city_name, work_state AS city_state_code, COUNT(*) AS count
         FROM h1b_case
@@ -39,7 +39,7 @@ const getBestCitiesByJobData = async (job_name: string): Promise<ICity[]> => {
         ORDER BY count DESC
         LIMIT 5;
     `);
-    return jobsRaw as ICity[];
+    return jobsRaw as ICityCount[];
 };
 
 export { getAllJobsData, getBestEmployersByJobData, getBestCitiesByJobData }
