@@ -53,5 +53,7 @@ export {
   getBestCitiesByEmployer,
   getBestCitiesByGrowth,
   getBestCitiesByDebt,
+  getBestCitiesByH1bVolume,
+  getBestCitiesByH1bSuccessRate
 };
 

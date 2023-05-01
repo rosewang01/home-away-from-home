@@ -1,5 +1,11 @@
 import express from "express";
-import { getAllCityDataByState, getBestCitiesByDebt, getBestCitiesByEmployer, getBestCitiesByGrowth, getBestCitiesByJob } from "../controllers/state.controller.js";
+import { 
+    getAllCityDataByState, 
+    getBestCitiesByDebt, 
+    getBestCitiesByEmployer, 
+    getBestCitiesByGrowth, 
+    getBestCitiesByJob
+} from "../controllers/state.controller.js";
 
 const stateRouter = express.Router();
 
