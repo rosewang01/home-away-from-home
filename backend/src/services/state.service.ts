@@ -3,9 +3,14 @@ import type IState from "../models/state.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
 
 const addSimilarStates = (states: IState[]): IState[] => {
+  console.log(states);
   const sortedStates = states.sort((a, b) => b.num_jobs - a.num_jobs);
+  console.log(sortedStates);
   return states.map((state: IState) => {
     let index = Math.max(sortedStates.findIndex((s) => s.state_code === state.state_code) - 2, 0);
+    if (state.similar_states === undefined) {
+      state.similar_states = [];
+    }
     while (state.similar_states.length < 3 && index < sortedStates.length - 1) {
       const similarState = sortedStates[index];
       if (similarState.state_code !== state.state_code) {
@@ -67,6 +72,9 @@ const getAllStates = async (): Promise<IState[]> => {
   LEFT OUTER JOIN state_housing_data shd ON s.state_code = shd.state_code
   LEFT OUTER JOIN state_job_data sjd ON s.state_code = sjd.state_code
   `);
+
+
+  console.log(statesRaw);
 
   const processedStates = addSimilarStates(statesRaw as IState[]);
 

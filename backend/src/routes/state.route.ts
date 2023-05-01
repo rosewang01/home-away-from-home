@@ -3,10 +3,10 @@ import { getAllCityDataByState, getBestCitiesByDebt, getBestCitiesByEmployer, ge
 
 const stateRouter = express.Router();
 
-stateRouter.get("/all", getAllCityDataByState);
-stateRouter.get("/job/:job", getBestCitiesByJob);
-stateRouter.get("/employer/:employer", getBestCitiesByEmployer);
-stateRouter.get("/growth", getBestCitiesByGrowth);
-stateRouter.get("/debt", getBestCitiesByDebt);
+stateRouter.get("/:state/all", getAllCityDataByState);
+stateRouter.get("/:state/job/:job", getBestCitiesByJob);
+stateRouter.get("/:state/employer/:employer", getBestCitiesByEmployer);
+stateRouter.get("/:state/growth", getBestCitiesByGrowth);
+stateRouter.get("/:state/debt", getBestCitiesByDebt);
 
 export { stateRouter };
