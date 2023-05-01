@@ -41,11 +41,11 @@ async function resolve(promise: Promise<any>) {
 /**
  * To UPDATE DURING DEPLOYMENT USING ENVIRONMENT VARIABLES
  */
-const BACKENDURL = process.env.PUBLIC_URL
+export const BACKENDURL = process.env.PUBLIC_URL
   ? process.env.PUBLIC_URL
   : 'http://localhost:4000';
 
-const URLPREFIX = `${BACKENDURL}/api`;
+export const URLPREFIX = `${BACKENDURL}/api`;
 
 /**
  * A function which makes a GET request to the server when given a url and returns the response data after it is resolved by the {@link resolve} function.

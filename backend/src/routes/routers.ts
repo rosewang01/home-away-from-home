@@ -9,7 +9,7 @@ const routers: Array<{ prefix: string; router: Router }> = [
     router: countryRouter,
   },
   {
-    prefix: "/api/state/:state",
+    prefix: "/api/state/",
     router: stateRouter,
   },
   {

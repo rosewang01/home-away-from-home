@@ -50,6 +50,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import { CatchingPokemonSharp } from '@mui/icons-material';
 import GeocoderControl from './GeoCoder';
 import AdsClickIcon from '@mui/icons-material/AdsClick';
+import { URLPREFIX } from '../util/api';
+import axios from 'axios';
 /* The above code is a React component that renders a map with different layers based on the selected
 filter option. It fetches data from two different URLs containing GeoJSON files, modifies the data
 by adding new properties to each feature object, and sets the modified data as state variables. It
@@ -60,7 +62,9 @@ state and handle events. */
 function HomePage() {
   const [filterOption, setFilterOption] = useState('By State');
   const [allStateData, setAllStateData] = useState();
+  const [stateList, setStateList] = useState<any>();
   const [allCityData, setAllCityData] = useState();
+  const [cityList, setCityList] = useState<any>();
   const [hoverInfo, setHoverInfo] = useState<any>();
   const [clickInfo, setClickInfo] = useState<any>();
   const mapRef = useRef<any>();
@@ -69,6 +73,7 @@ function HomePage() {
   const [addressInput, setAddressInput] = useState('');
   const [addressTarget, setAddressTarget] = useState<any>();
   const [isAddressLoading, setIsAddressLoading] = useState(false)
+
 
   const getRandomNum = (min: number, max: number): number => {
     return Math.round(Math.random() * (max - min) + min);
@@ -133,90 +138,121 @@ function HomePage() {
   }
 
   useEffect(() => {
-    console.log(addresses)
-  }, [addresses])
+    const fetchStates = async () => {
+      const { data } = await axios.get(`${URLPREFIX}/country/all`);
+      setStateList(data);
+    }
+
+    fetchStates();
+  }, [])
 
   /* The above code is using the `useEffect` hook to fetch data from a URL that contains a GeoJSON file.
     Once the data is fetched, it is parsed as JSON and then modified by adding new properties to each
     feature object. The modified data is then set as the state using the `setAllStateData` function. The
     `console.log` statement is used to log the modified data to the console. */
+
   useEffect(() => {
     /* global fetch */
+    if (stateList === undefined) {
+      return;
+    }
+
+    var normalization = stateList.map( (state: any) => {
+      state.score = (state.average_housing_price + state.average_salary + 
+        state.h1b_success_rate + state.average_housing_price_growth +
+        state.h1b_volume + state.num_jobs)
+      return (state.average_housing_price + state.average_salary + 
+        state.h1b_success_rate + state.average_housing_price_growth +
+        state.h1b_volume + state.num_jobs)
+    })
+
+    var maxValue = Math.max.apply(null, normalization);
+    var minValue = Math.min.apply(null, normalization);
+
+    const normalize = (val : any, max : any, min : any) => {
+      var score = ((val - min) / (max - min)) * 10;
+      score = parseFloat(score.toFixed(1));
+
+      return score; 
+    }
     fetch(
       'https://raw.githubusercontent.com/uber/react-map-gl/master/examples/.data/us-income.geojson',
     )
       .then((resp) => resp.json())
       .then((json) => {
         json.features.forEach((feature: any, index: any) => {
-          feature.properties.score = getRandomNum(0, 10);
-          feature.properties.cost = getRandomNum(100, 500);
+          var targetObj = stateList?.find( (obj : any) => {
+            return obj.state_name === feature.properties.name
+          })
+          feature.properties.state_code = targetObj.state_code;
+          feature.properties.score = normalize(targetObj.score, maxValue, minValue);
+          feature.properties.cost = Math.round(targetObj.average_housing_price / 1000);
           feature.properties.jobs = 'SWE, PM, DS';
-          feature.properties.growth = getRandomNum(1, 100);
-          feature.properties.H1B_volume = getRandomNum(1000, 5000);
-          feature.properties.H1B_success_rate = getRandomNum(1, 100);
-          feature.properties.salary = getRandomNum(100, 1000);
-          feature.properties.top_jobs = [
-            {
-              name: 'SWE',
+          feature.properties.growth = Math.round(targetObj.average_housing_price_growth * 100);
+          feature.properties.H1B_volume = targetObj.h1b_volume;
+          feature.properties.H1B_success_rate = Math.round(targetObj.h1b_success_rate * 100);
+          feature.properties.salary = Math.round(targetObj.average_salary / 1000);
+          feature.properties.top_jobs = targetObj.top_jobs?.split(";").map((job : any) => {
+            return {
+              name: job,
               avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'PM',
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Technical PM',
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Accountant',
-              avgSalary: getRandomNum(100, 500),
-            },
-          ];
-          feature.properties.top_companies = [
-            {
-              name: 'Amazon',
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Facebook',
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Netflix',
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Jane Street',
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            },
-          ];
-          feature.properties.related = [];
-          for (var i = 0; i < 3; i++) {
-            var ind = getRandomNum(1, 50);
-            feature.properties.related.push({
-              name: json.features[ind].properties.name,
-              score: getRandomNum(0, 10),
-              cost: getRandomNum(100, 500),
-              salary: getRandomNum(100, 1000),
-            });
-            // console.log({
-            //     name: json.features[ind].name,
-            //     score: json.features[ind].score,
-            //     cost: json.features[ind].growth,
-            //     salary: json.features[ind].salary,
-            // })
+            }
+          })
+          if (targetObj.top_jobs == undefined) {
+            feature.properties.top_jobs = []
           }
+          feature.properties.top_companies = targetObj.top_employers?.split(";").map((company : any) => {
+            return {
+              name: company,
+              success_rate: getRandomNum(1, 100),
+              avgSalary: getRandomNum(100, 500),
+            }
+          })
+          if (targetObj.top_employers == undefined) {
+            feature.properties.top_companies = []
+          }
+          feature.properties.related = targetObj.similar_states?.map((state : any) =>  {
+
+            const targetState = stateList?.find( (obj : any) => {
+              return obj.state_code === state
+            })
+
+            return {
+              name: targetState.state_name,
+              score: normalize(targetState.score, maxValue, minValue),
+              cost: Math.round(targetState.average_housing_price / 1000),
+              salary: Math.round(targetState.average_salary / 1000),
+            }
+            
+          });
         });
         setAllStateData(json);
         console.log(json);
       })
       .catch((err) => console.error('Could not load data', err)); // eslint-disable-line
-  }, []);
+  }, [stateList]);
+
+
+  useEffect(() => {
+    if (stateList === undefined) {
+      return;
+    }
+    const fetchCities = async () => {
+
+      const stateCodes = stateList.map( (state : any) => {
+        return state.state_code;
+      })
+      const cities = await Promise.all(
+        stateCodes.map(async (code : any) => {
+          const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
+          return res.data
+        })
+      )
+      setCityList(cities.flat());
+    }
+
+    fetchCities();
+  }, [stateList])
 
   /* The above code is using the `useEffect` hook to fetch data from a JSON file containing
     information about cities. It then modifies the data by adding new properties to each city
@@ -224,76 +260,94 @@ function HomePage() {
     the state variable `allCityData` and logs it to the console. */
   useEffect(() => {
     /* global fetch */
+    if (cityList === undefined) {
+      return;
+    }
+
+    var normalization = cityList.map( (state: any) => {
+      state.score = (state.average_salary + 
+        state.h1b_success_rate +
+        state.h1b_volume + state.num_jobs)
+      return (state.average_salary + 
+        state.h1b_success_rate +
+        state.h1b_volume + state.num_jobs)
+    })
+
+    var maxValue = Math.max.apply(null, normalization);
+    var minValue = Math.min.apply(null, normalization);
+
+    const normalize = (val : any, max : any, min : any) => {
+      var score = ((val - min) / (max - min)) * 10;
+      score = parseFloat(score.toFixed(1));
+
+      return score; 
+    }
+
     fetch(
       'https://raw.githubusercontent.com/trangiabach/cities-geojson-small/main/cities-small.json',
     )
       .then((resp) => resp.json())
       .then((json) => {
-        json.features.forEach((feature: any) => {
-          feature.properties.name = feature.properties.NAME;
-          feature.properties.score = getRandomNum(0, 10);
-          feature.properties.cost = getRandomNum(100, 500);
+        var newFeatures : any[] = []
+        json.features.forEach((feature: any, index : any, lis : any) => {
+          var targetObj = cityList?.find( (obj : any) => {
+            return obj.metro_region === feature.properties.NAME
+          })
+          if (targetObj === undefined) {
+            
+          } else {
+            feature.properties.name = feature.properties.NAME;
+            feature.properties.score = normalize(targetObj.score, maxValue, minValue);
+          feature.properties.cost = Math.round(targetObj.average_housing_price / 1000);
           feature.properties.jobs = 'SWE, PM, DS';
-          feature.properties.growth = getRandomNum(1, 100);
-          feature.properties.H1B_volume = getRandomNum(1000, 5000);
-          feature.properties.H1B_success_rate = getRandomNum(1, 100);
-          feature.properties.salary = getRandomNum(100, 1000);
-          feature.properties.top_jobs = [
-            {
-              name: 'SWE',
+          feature.properties.growth = Math.round(targetObj.average_housing_price_growth * 100);
+          feature.properties.H1B_volume = targetObj.h1b_volume;
+          feature.properties.H1B_success_rate = Math.round(targetObj.h1b_success_rate * 100);
+          feature.properties.salary = Math.round(targetObj.average_salary / 1000);
+          feature.properties.top_jobs = targetObj.top_jobs?.split(";").map((job : any) => {
+            return {
+              name: job,
               avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'PM',
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Technical PM',
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Accountant',
-              avgSalary: getRandomNum(100, 500),
-            },
-          ];
-          feature.properties.top_companies = [
-            {
-              name: 'Amazon',
+            }
+          })
+          if (targetObj.top_jobs == undefined) {
+            feature.properties.top_jobs = []
+          }
+          feature.properties.top_companies = targetObj.top_employers?.split(";").map((company : any) => {
+            return {
+              name: company,
               success_rate: getRandomNum(1, 100),
               avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Facebook',
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Netflix',
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            },
-            {
-              name: 'Jane Street',
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            },
-          ];
-          feature.properties.related = [];
-          for (var i = 0; i < 3; i++) {
-            var ind = getRandomNum(1, 50);
-            feature.properties.related.push({
-              name: json.features[ind].properties.name,
-              score: getRandomNum(0, 10),
-              cost: getRandomNum(100, 500),
-              salary: getRandomNum(100, 1000),
-            });
+            }
+          })
+          if (targetObj.top_employers == undefined) {
+            feature.properties.top_companies = []
+          }
+          feature.properties.related = targetObj.similar_cities?.map((state : any) =>  {
+
+            const targetState = cityList?.find( (obj : any) => {
+              return obj.metro_region === state
+            })
+
+            return {
+              name: targetState.state_name,
+              score: normalize(targetState.score, maxValue, minValue),
+              cost: Math.round(targetState.average_housing_price / 1000),
+              salary: Math.round(targetState.average_salary / 1000),
+            }
+            
+          });
+          if (feature.properties.related === undefined) {
+            feature.properties.related = []
+          }
+            newFeatures.push(feature);
           }
         });
+        json.features = newFeatures;
         setAllCityData(json);
-        console.log(json);
       })
       .catch((err) => console.error('Could not load data', err)); // eslint-disable-line
-  }, []);
+  }, [cityList]);
 
   const selectedState = (hoverInfo && hoverInfo?.feature?.properties.name) || '';
   const filterStates = useMemo(
