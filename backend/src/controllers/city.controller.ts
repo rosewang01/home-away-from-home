@@ -3,20 +3,20 @@ import { getAllZipCodes, getBestCostZipCodes, getBestGrowthZipCodes } from "../s
 
 const getAllZipCodeDataByCity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { city_name } = req.params;
-  res.send(getAllZipCodes(city_name))
-  return;
+  const zipCodeDataRaw = await getAllZipCodes(city_name);
+  res.status(200).json(zipCodeDataRaw);
 };
 
 const getBestZipCodesByGrowth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { city_name } = req.params;
-  res.send(getBestGrowthZipCodes(city_name))
-  return;
+  const zipCodeDataRaw = await getBestGrowthZipCodes(city_name);
+  res.status(200).json(zipCodeDataRaw);
 };
 
 const getBestZipCodesByCost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { city_name } = req.params;
-  res.send(getBestCostZipCodes(city_name))
-  return;
+  const zipCodeDataRaw = await getBestCostZipCodes(city_name);
+  res.status(200).json(zipCodeDataRaw);
 };
 
 export {
