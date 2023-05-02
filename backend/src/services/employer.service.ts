@@ -21,7 +21,7 @@ const getBestJobsByEmployerData = async (employer_name: string): Promise<IJobCou
     const employersRaw = await sqlQuery(`
         SELECT job_title AS job_name, COUNT(*) AS count
         FROM h1b_case
-        WHERE emp_name LIKE ${employer_name}
+        WHERE emp_name LIKE '%${employer_name.toUpperCase}%'
         GROUP BY job_title
         ORDER BY count DESC
         LIMIT 5;
@@ -33,7 +33,7 @@ const getBestCitiesByEmployerData = async (employer_name: string): Promise<ICity
     const employersRaw = await sqlQuery(`
         SELECT work_city AS city_name, work_state AS city_state_code, COUNT(*) AS count
         FROM h1b_case
-        WHERE emp_name LIKE ${employer_name}
+        WHERE emp_name LIKE '%${employer_name.toUpperCase}%'
         GROUP BY work_city, work_state
         ORDER BY count DESC
         LIMIT 5;

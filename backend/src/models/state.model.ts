@@ -4,12 +4,10 @@ import type IJob from "./job.model.js";
 interface IState {
   state_code: string;
   state_name: string;
-  score: number;
 
   average_housing_price: number;
   average_housing_price_growth: number;
 
-  num_jobs: number;
   average_salary: number;
   top_jobs: IJob[];
   top_employers: IEmployer[];
