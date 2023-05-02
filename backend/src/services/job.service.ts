@@ -1,9 +1,15 @@
 import { sqlQuery } from "../utils/sql.js";
 import type IJob from "../models/job.model.js";
-import IEmployerCount from "../models/employerCount.model.js";
-import ICityCount from "../models/cityCount.model.js";
+import type IEmployerCount from "../models/employerCount.model.js";
+import type ICityCount from "../models/cityCount.model.js";
+import {redisGet, redisSet} from "../utils/redis.js";
 
 const getAllJobsData = async (): Promise<IJob[]> => {
+    const cached = await redisGet(`jobs/all`);
+    if (cached != null) {
+        return JSON.parse(cached) as IJob[];
+    }
+
     const jobsRaw = await sqlQuery(`
         SELECT
             job_title AS job_name,
@@ -15,10 +21,17 @@ const getAllJobsData = async (): Promise<IJob[]> => {
         ORDER BY success_rate DESC, avg_salary DESC
         LIMIT 10;
     `);
+
+    await redisSet(`jobs/all`, JSON.stringify(jobsRaw));
     return jobsRaw as IJob[];
 };
 
 const getBestEmployersByJobData = async (job_name: string): Promise<IEmployerCount[]> => {
+    const cached = await redisGet(`jobs/${job_name}/employers`);
+    if (cached != null) {
+        return JSON.parse(cached) as IEmployerCount[];
+    }
+
     const jobsRaw = await sqlQuery(`
         SELECT emp_name AS employer_name, COUNT(*) AS count
         FROM h1b_case
@@ -27,10 +40,17 @@ const getBestEmployersByJobData = async (job_name: string): Promise<IEmployerCou
         ORDER BY count DESC
         LIMIT 5;
     `);
+
+    await redisSet(`jobs/${job_name}/employers`, JSON.stringify(jobsRaw));
     return jobsRaw as IEmployerCount[];
 };
 
 const getBestCitiesByJobData = async (job_name: string): Promise<ICityCount[]> => {
+    const cached = await redisGet(`jobs/${job_name}/cities`);
+    if (cached != null) {
+        return JSON.parse(cached) as ICityCount[];
+    }
+
     const jobsRaw = await sqlQuery(`
         SELECT work_city AS city_name, work_state AS city_state_code, COUNT(*) AS count
         FROM h1b_case
@@ -39,6 +59,8 @@ const getBestCitiesByJobData = async (job_name: string): Promise<ICityCount[]> =
         ORDER BY count DESC
         LIMIT 5;
     `);
+
+    await redisSet(`jobs/${job_name}/cities`, JSON.stringify(jobsRaw));
     return jobsRaw as ICityCount[];
 };
 
