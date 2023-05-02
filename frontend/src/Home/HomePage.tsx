@@ -192,6 +192,7 @@ function HomePage() {
     const fetchStates = async () => {
       setIsLoadingAllStates(true)
       const { data } = await axios.get(`${URLPREFIX}/country/all`);
+      console.log(data);
       setStateList(data);
       setIsLoadingAllStates(false)
     }
@@ -559,11 +560,6 @@ function HomePage() {
       const fetchStates = async () => {
         const { data } = await axios.get(`${URLPREFIX}/country/all`);
         setStateList(data);
-      }
-  
-      fetchStates();
-
-      const fetchCities = async () => {
 
         const stateCodes = stateList.map( (state : any) => {
           return state.state_code;
@@ -579,8 +575,7 @@ function HomePage() {
         setCityList(cities.flat());
       }
   
-      fetchCities();
-      
+      fetchStates();
     }
   }, [filteringOption])
 
