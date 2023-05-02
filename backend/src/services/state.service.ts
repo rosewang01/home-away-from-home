@@ -3,9 +3,7 @@ import type IState from "../models/state.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
 
 const addSimilarStates = (states: IState[]): IState[] => {
-  console.log(states);
-  const sortedStates = states.sort((a, b) => b.num_jobs - a.num_jobs);
-  console.log(sortedStates);
+  const sortedStates = states.sort((a, b) => b.h1b_volume - a.h1b_volume);
   return states.map((state: IState) => {
     let index = Math.max(sortedStates.findIndex((s) => s.state_code === state.state_code) - 2, 0);
     if (state.similar_states === undefined) {
@@ -70,9 +68,6 @@ const getAllStates = async (): Promise<IState[]> => {
     JOIN state_final_data sfd ON shd.state_code = sfd.state_code;
   `);
 
-
-  console.log(statesRaw);
-
   const processedStates = addSimilarStates(statesRaw as IState[]);
 
   await redisSet("states/all", JSON.stringify(processedStates));
@@ -122,7 +117,6 @@ const getStatesWithJobFilter = async (jobFilter: string): Promise<IState[]> => {
 
   const processedStates = addSimilarStates(statesRaw as IState[]);
 
-
   await redisSet(`states/job/${jobFilter}`, JSON.stringify(processedStates));
 
   return processedStates;
@@ -169,7 +163,6 @@ const getStatesWithEmployerFilter = async (employerFilter: string): Promise<ISta
   `);
 
   const processedStates = addSimilarStates(statesRaw as IState[]);
-
 
   await redisSet(`states/employer/${employerFilter}`, JSON.stringify(processedStates));
 

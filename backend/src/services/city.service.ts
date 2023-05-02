@@ -3,7 +3,7 @@ import type ICity from "../models/city.model.js";
 import {sqlQuery} from "../utils/sql.js";
 
 const addSimilarCities = (cities: ICity[]): ICity[] => {
-  const sortedCities = cities.sort((a, b) => b.num_jobs - a.num_jobs);
+  const sortedCities = cities.sort((a, b) => b.h1b_volume - a.h1b_volume);
   return cities.map((city: ICity) => {
     let index = Math.max(sortedCities.findIndex((c) => c.city_name === city.city_name) - 2, 0);
     if (city.similar_cities === undefined) {
@@ -69,15 +69,14 @@ const getAllCities = async (stateCode: string): Promise<ICity[]> => {
         JOIN top_employers te ON tjd.metro_region = te.metro_region
   )
 
-  SELECT mhd.metro_region, average_housing_price, average_housing_price_growth, sjd.h1b_volume, sjd.h1b_success_rate, sjd.average_salary, sjd.top_jobs, sjd.top_employers FROM metro_region_housing_data mhd
+  SELECT mhd.metro_region AS city_name, average_housing_price, average_housing_price_growth, sjd.h1b_volume, sjd.h1b_success_rate, sjd.average_salary, sjd.top_jobs, sjd.top_employers FROM metro_region_housing_data mhd
     JOIN metro_region_final_data sjd ON mhd.metro_region = sjd.metro_region;
 `);
 
   const processedCities = addSimilarCities(rawCities as ICity[]).map((city: ICity) => ({
-      ...city,
-      state_code: stateCode,
-    }
-  ));
+    ...city,
+    city_state_code: stateCode,
+  }));
 
   await redisSet(`cities/${stateCode}/all`, JSON.stringify(processedCities));
   return processedCities;
@@ -121,15 +120,14 @@ const getCitiesWithJobFilter = async (stateCode: string, jobFilter: string): Pro
         JOIN top_employers te ON tjd.metro_region = te.metro_region
   )
 
-  SELECT mhd.metro_region, average_housing_price, average_housing_price_growth, sjd.num_jobs, sjd.average_salary, sjd.top_employers FROM metro_region_housing_data mhd
+  SELECT mhd.metro_region AS city_name, average_housing_price, average_housing_price_growth, sjd.num_jobs, sjd.average_salary, sjd.top_employers FROM metro_region_housing_data mhd
     JOIN metro_region_final_data sjd ON mhd.metro_region = sjd.metro_region;
   `);
 
   const processedCities = addSimilarCities(rawCities as ICity[]).map((city: ICity) => ({
-      ...city,
-      state_code: stateCode,
-    }
-  ));
+    ...city,
+    city_state_code: stateCode,
+  }));
 
   await redisSet(`cities/${stateCode}/all`, JSON.stringify(processedCities));
   return processedCities;
@@ -173,13 +171,13 @@ const getCitiesWithEmployerFilter = async (stateCode: string, employerFilter: st
         JOIN top_jobs tj ON tjd.metro_region = tj.metro_region
   )
 
-  SELECT mhd.metro_region, average_housing_price, average_housing_price_growth, sjd.num_jobs, sjd.average_salary, sjd.top_jobs FROM metro_region_housing_data mhd
+  SELECT mhd.metro_region AS city_name, average_housing_price, average_housing_price_growth, sjd.num_jobs, sjd.average_salary, sjd.top_jobs FROM metro_region_housing_data mhd
     JOIN metro_region_final_data sjd ON mhd.metro_region = sjd.metro_region;
   `);
 
   const processedCities = addSimilarCities(rawCities as ICity[]).map((city: ICity) => ({
       ...city,
-      state_code: stateCode,
+      city_state_code: stateCode,
   }));
 
   await redisSet(`cities/${stateCode}/employers/${employerFilter}`, JSON.stringify(processedCities));
