@@ -41,7 +41,7 @@ async function resolve(promise: Promise<any>) {
 /**
  * To UPDATE DURING DEPLOYMENT USING ENVIRONMENT VARIABLES
  */
-export const URLPREFIX = `localhost:4000/api`;
+export const URLPREFIX = `http://localhost:4000/api`;
 
 /**
  * A function which makes a GET request to the server when given a url and returns the response data after it is resolved by the {@link resolve} function.

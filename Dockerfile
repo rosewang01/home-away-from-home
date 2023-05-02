@@ -21,5 +21,5 @@ RUN npm install
 COPY backend/ ./
 COPY --from=BUILDER /usr/src/build/build ./public
 
-EXPOSE 8080
+EXPOSE 3000
 CMD service redis-server start && npm start
