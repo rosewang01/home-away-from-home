@@ -1,5 +1,7 @@
 import "dotenv/config";
 import { createExpressApp } from "./src/config/createExpressApp.js";
+import express from "express";
+import path from "path";
 
 const main = (): void => {
   // Listen for termination

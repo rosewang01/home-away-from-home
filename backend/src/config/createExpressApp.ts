@@ -7,6 +7,7 @@ import "dotenv/config";
 import { routers } from "../routes/routers.js";
 import { ApiError } from "../utils/apiError.js";
 import { apiErrorResponder } from "../utils/apiErrorResponder.js";
+import { fileURLToPath } from 'url';
 
 const createExpressApp = (): express.Express => {
   const app = express();
@@ -36,13 +37,17 @@ const createExpressApp = (): express.Express => {
   // Inits routers listed in routers.ts file
   routers.forEach((entry) => app.use(entry.prefix, entry.router));
 
+
   // Serving static files
   if (process.env.NODE_ENV === "production") {
-    const root = path.join(__dirname, "../../../../", "client", "build");
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const root = path.join(__dirname, "../..", "public")
 
     app.use(express.static(root));
-    app.get("*", (_: Request, res: Response) => {
-      res.sendFile("index.html", { root });
+
+    app.get('*', (req, res) => {
+      res.sendFile(`${root}/index.html`);
     });
   }
 
