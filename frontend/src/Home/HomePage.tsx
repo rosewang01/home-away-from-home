@@ -23,7 +23,9 @@ import {
   Badge,
   TextField,
   Icon,
-  CircularProgress
+  CircularProgress,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SendIcon from '@mui/icons-material/Send';
@@ -119,6 +121,8 @@ function HomePage() {
   const [employerQueryLoading, setEmployerQueryLoading] = useState(false)
   const [jobQuery, setJobQuery] = useState('');
   const [jobQueryLoading, setJobQueryLoading] = useState(false)
+  const [isLoadingAllCitites, setIsLoadingAllCities] = useState(false)
+  const [isLoadingAllStates, setIsLoadingAllStates] = useState(false)
 
 
   const getRandomNum = (min: number, max: number): number => {
@@ -186,8 +190,10 @@ function HomePage() {
 
   useEffect(() => {
     const fetchStates = async () => {
+      setIsLoadingAllStates(true)
       const { data } = await axios.get(`${URLPREFIX}/country/all`);
       setStateList(data);
+      setIsLoadingAllStates(false)
     }
 
     fetchStates();
@@ -305,12 +311,14 @@ function HomePage() {
       const stateCodes = stateList.map( (state : any) => {
         return state.state_code;
       })
+      setIsLoadingAllCities(true)
       const cities = await Promise.all(
         stateCodes.map(async (code : any) => {
           const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
           return res.data
         })
       )
+      setIsLoadingAllCities(false)
       setCityList(cities.flat());
     }
 
@@ -544,6 +552,9 @@ function HomePage() {
   }
 
   useEffect(() => {
+    if (stateList == undefined || cityList == undefined) {
+      return;
+    }
     if (filteringOption !== 'By Employer' && filteringOption !== 'By Job') {
       const fetchStates = async () => {
         const { data } = await axios.get(`${URLPREFIX}/country/all`);
@@ -557,6 +568,8 @@ function HomePage() {
         const stateCodes = stateList.map( (state : any) => {
           return state.state_code;
         })
+
+        console.log(stateCodes)
         const cities = await Promise.all(
           stateCodes.map(async (code : any) => {
             const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
@@ -1212,6 +1225,54 @@ function HomePage() {
           setLoading={setIsAddressLoading}
         />
       </Map>
+      <Snackbar anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'center',
+      }} open={isLoadingAllCitites}
+      sx={{
+        display: 'flex',
+        alignItems: 'center'
+      }}
+      >
+        <Alert
+         severity="info" 
+         sx={{ 
+          display: 'flex',
+          width: '100%',
+          ".MuiAlert-message": {
+            display: 'flex'
+          }}}>
+          <Typography>
+          Loading All Cities
+          </Typography>
+          <Box sx={{ m: 1 }} />
+          <CircularProgress size="1.5rem" />
+        </Alert>
+      </Snackbar>
+      <Snackbar anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'center',
+      }} open={isLoadingAllStates}
+      sx={{
+        display: 'flex',
+        alignItems: 'center'
+      }}
+      >
+        <Alert
+         severity="info" 
+         sx={{ 
+          display: 'flex',
+          width: '100%',
+          ".MuiAlert-message": {
+            display: 'flex'
+          }}}>
+          <Typography>
+          Loading All States
+          </Typography>
+          <Box sx={{ m: 1 }} />
+          <CircularProgress size="1.5rem" />
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
