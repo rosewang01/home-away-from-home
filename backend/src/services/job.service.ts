@@ -14,7 +14,7 @@ const getAllJobsData = async (): Promise<IJob[]> => {
         SELECT
             job_title AS job_name,
             COUNT(CASE WHEN case_status = 'C' THEN 1 END) / COUNT(*) AS success_rate,
-            AVG(prevailing_yearly_wage) AS average_salary
+            AVG(prevailing_yearly_wage) AS avg_salary
         FROM h1b_case
         GROUP BY job_title
         HAVING COUNT(*) >= 100
