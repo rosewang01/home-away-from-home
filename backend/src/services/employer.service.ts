@@ -13,7 +13,7 @@ const getAllEmployersData = async (): Promise<IEmployer[]> => {
     const employersRaw = await sqlQuery(`
         SELECT
             emp_name AS employer_name,
-            COUNT(CASE WHEN case_status = 'C' THEN 1 END) / COUNT(*) AS h1b_success_rate,
+            COUNT(CASE WHEN case_status = 'C' THEN 1 END) / COUNT(*) AS success_rate,
             AVG(prevailing_yearly_wage) AS average_salary
         FROM h1b_case
         GROUP BY emp_name
