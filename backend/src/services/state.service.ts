@@ -64,8 +64,9 @@ const getAllStates = async (): Promise<IState[]> => {
         JOIN top_employers te ON tjd.state_code = te.state_code
   )
 
-  SELECT shd.state_code, average_housing_price, average_housing_price_growth, sfd.h1b_volume, sfd.h1b_success_rate, sfd.average_salary, sfd.top_jobs, sfd.top_employers FROM state_housing_data shd
-    JOIN state_final_data sfd ON shd.state_code = sfd.state_code;
+  SELECT shd.state_code, s.state_name, average_housing_price, average_housing_price_growth, sfd.h1b_volume, sfd.h1b_success_rate, sfd.average_salary, sfd.top_jobs, sfd.top_employers FROM state_housing_data shd
+    JOIN state_final_data sfd ON shd.state_code = sfd.state_code
+    JOIN state s ON shd.state_code = s.state_code;
   `);
 
   const processedStates = addSimilarStates(statesRaw as IState[]);
