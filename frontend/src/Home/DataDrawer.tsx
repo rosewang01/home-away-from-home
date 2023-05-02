@@ -15,6 +15,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 
 type Anchor = 'top' | 'left' | 'bottom' | 'right';
 
@@ -211,6 +212,21 @@ function DataDrawer({
             />
           }
         />
+      </Stack>
+      <Box sx={{ m: 4 }} />
+      <Stack direction='row'>
+        <DataDrawerCard
+            label="Debt Score"
+            content={info?.properties.debt}
+            icon={
+              <MoneyOffIcon
+                sx={{
+                  color: '#3B82F6',
+                }}
+                fontSize="small"
+              />
+            }
+          />
       </Stack>
       <Box sx={{ m: 5 }} />
       <Stack

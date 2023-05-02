@@ -20,6 +20,10 @@ import {
   Divider,
   Chip,
   Stack,
+  Badge,
+  TextField,
+  Icon,
+  CircularProgress
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SendIcon from '@mui/icons-material/Send';
@@ -41,6 +45,10 @@ import {
   StateDataLayer,
   StateDataLineLayer,
   StateDataHighlightedLayer,
+  GrowthDataLayer,
+  DebtDataLayer,
+  VolumeDataLayer,
+  SuccessRateLayer
 } from './StateDataLayer';
 import bbox from '@turf/bbox';
 import StateToolTip from './StateToolTip';
@@ -52,6 +60,13 @@ import GeocoderControl from './GeoCoder';
 import AdsClickIcon from '@mui/icons-material/AdsClick';
 import { URLPREFIX } from '../util/api';
 import axios from 'axios';
+import Menu, { MenuProps } from '@mui/material/Menu';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+
 /* The above code is a React component that renders a map with different layers based on the selected
 filter option. It fetches data from two different URLs containing GeoJSON files, modifies the data
 by adding new properties to each feature object, and sets the modified data as state variables. It
@@ -59,6 +74,32 @@ also includes a search bar, a submit button, and a menu button in the app bar. W
 clicked on the map, a data drawer is opened with information about the clicked feature. The
 component uses various React hooks such as useState, useRef, useCallback, and useEffect to manage
 state and handle events. */
+
+const FilterMenu = ( props : MenuProps) => (
+  <Menu
+  elevation={0}
+  anchorOrigin={{
+    vertical: 'bottom',
+    horizontal: 'right',
+  }}
+  transformOrigin={{
+    vertical: 'top',
+    horizontal: 'right',
+  }}
+  {...props}
+  sx={{
+    '& .MuiPaper-root': {
+      border: '1px solid #3B82F6 !important',
+      borderRadius: '10px',
+      boxShadow:
+        '0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
+      p: '4px 8px',
+      marginTop: '8px'
+    }
+  }}
+  />
+)
+
 function HomePage() {
   const [filterOption, setFilterOption] = useState('By State');
   const [allStateData, setAllStateData] = useState();
@@ -72,7 +113,12 @@ function HomePage() {
   const [addresses, setAddresses] = useState<any>([]);
   const [addressInput, setAddressInput] = useState('');
   const [addressTarget, setAddressTarget] = useState<any>();
-  const [isAddressLoading, setIsAddressLoading] = useState(false)
+  const [isAddressLoading, setIsAddressLoading] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [employerQuery, setEmployerQuery] = useState('');
+  const [employerQueryLoading, setEmployerQueryLoading] = useState(false)
+  const [jobQuery, setJobQuery] = useState('');
+  const [jobQueryLoading, setJobQueryLoading] = useState(false)
 
 
   const getRandomNum = (min: number, max: number): number => {
@@ -117,6 +163,7 @@ function HomePage() {
         feature.properties.top_companies,
       );
       feature.properties.related = JSON.parse(feature.properties.related);
+      console.log(feature)
       setClickInfo(feature);
       setDrawerState(true);
     }
@@ -157,6 +204,8 @@ function HomePage() {
       return;
     }
 
+    console.log(stateList)
+
     var normalization = stateList.map( (state: any) => {
       state.score = (state.average_housing_price + state.average_salary + 
         state.h1b_success_rate + state.average_housing_price_growth +
@@ -166,8 +215,15 @@ function HomePage() {
         state.h1b_volume + state.num_jobs)
     })
 
+    var normalized_H1B = stateList.map( (state : any) => {
+      return state.h1b_volume
+    })
+
     var maxValue = Math.max.apply(null, normalization);
     var minValue = Math.min.apply(null, normalization);
+
+    var maxH1BValue = Math.max.apply(null, normalized_H1B);
+    var minH1BValue = Math.min.apply(null, normalized_H1B);
 
     const normalize = (val : any, max : any, min : any) => {
       var score = ((val - min) / (max - min)) * 10;
@@ -184,6 +240,11 @@ function HomePage() {
           var targetObj = stateList?.find( (obj : any) => {
             return obj.state_name === feature.properties.name
           })
+          feature.properties.debt = Math.round( targetObj.average_housing_price / targetObj.average_salary)
+          if (feature.properties.debt == Infinity) {
+            feature.properties.debt = 'No info'
+          }
+          feature.properties.H1B_volume_normalized = normalize(targetObj.h1b_volume, maxH1BValue, minH1BValue)
           feature.properties.state_code = targetObj.state_code;
           feature.properties.score = normalize(targetObj.score, maxValue, minValue);
           feature.properties.cost = Math.round(targetObj.average_housing_price / 1000);
@@ -191,6 +252,7 @@ function HomePage() {
           feature.properties.growth = Math.round(targetObj.average_housing_price_growth * 100);
           feature.properties.H1B_volume = targetObj.h1b_volume;
           feature.properties.H1B_success_rate = Math.round(targetObj.h1b_success_rate * 100);
+          feature.properties.H1B_success_rate_normalized = Math.round(targetObj.h1b_success_rate * 10);
           feature.properties.salary = Math.round(targetObj.average_salary / 1000);
           feature.properties.top_jobs = targetObj.top_jobs?.split(";").map((job : any) => {
             return {
@@ -226,6 +288,7 @@ function HomePage() {
             
           });
         });
+        console.log(json)
         setAllStateData(json);
         console.log(json);
       })
@@ -264,6 +327,8 @@ function HomePage() {
       return;
     }
 
+    console.log(cityList)
+
     var normalization = cityList.map( (state: any) => {
       state.score = (state.average_salary + 
         state.h1b_success_rate +
@@ -275,6 +340,13 @@ function HomePage() {
 
     var maxValue = Math.max.apply(null, normalization);
     var minValue = Math.min.apply(null, normalization);
+
+    var normalized_H1B = stateList.map( (state : any) => {
+      return state.h1b_volume
+    })
+
+    var maxH1BValue = Math.max.apply(null, normalized_H1B);
+    var minH1BValue = Math.min.apply(null, normalized_H1B);
 
     const normalize = (val : any, max : any, min : any) => {
       var score = ((val - min) / (max - min)) * 10;
@@ -296,6 +368,11 @@ function HomePage() {
           if (targetObj === undefined) {
             
           } else {
+            feature.properties.H1B_volume_normalized = normalize(targetObj.h1b_volume, maxH1BValue, minH1BValue)
+            feature.properties.debt = Math.round( targetObj.average_housing_price / targetObj.average_salary)
+            if (feature.properties.debt == Infinity) {
+              feature.properties.debt = 'No info'
+            }
             feature.properties.name = feature.properties.NAME;
             feature.properties.score = normalize(targetObj.score, maxValue, minValue);
           feature.properties.cost = Math.round(targetObj.average_housing_price / 1000);
@@ -303,6 +380,7 @@ function HomePage() {
           feature.properties.growth = Math.round(targetObj.average_housing_price_growth * 100);
           feature.properties.H1B_volume = targetObj.h1b_volume;
           feature.properties.H1B_success_rate = Math.round(targetObj.h1b_success_rate * 100);
+          feature.properties.H1B_success_rate_normalized = Math.round(targetObj.h1b_success_rate * 10);
           feature.properties.salary = Math.round(targetObj.average_salary / 1000);
           feature.properties.top_jobs = targetObj.top_jobs?.split(";").map((job : any) => {
             return {
@@ -371,11 +449,133 @@ function HomePage() {
     return allCityData;
   }, [allCityData]);
 
+
+  const open = Boolean(anchorEl);
+  const handleFilterMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleFilterMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleFilterChange = (event : any) => {
+    console.log(event.target.value);
+  }
+
+  const [filteringOption, setFilteringOption] = useState("");
+
+  const handleRadioClick = (event : any) => {
+    if (event.target.value === filteringOption) {
+      setFilteringOption("");
+    } else {
+      setFilteringOption(event.target.value);
+    }
+  }
+
+  const handleEmployerValue = (event : any) => {
+    console.log(event.target.value)
+    setEmployerQuery(event.target.value)
+  }
+
+  const handleJobValue = (event : any) => {
+    console.log(event.target.value)
+    setJobQuery(event.target.value)
+  }
+
+  const handleSubmitEmployer = () => {
+    const fetchEmployerData = async () => {
+      if (filterOption == 'By State') {
+        setEmployerQueryLoading(true)
+        const { data } = await axios.get(`${URLPREFIX}/country/employer/${employerQuery}`);
+        setEmployerQueryLoading(false)
+        console.log('Employer')
+        console.log(data)
+        setStateList(data);
+      } else if (filterOption == 'By City') {
+        const stateCodes = stateList.map( (state : any) => {
+          return state.state_code;
+        })
+        setEmployerQueryLoading(true)
+        const cities = await Promise.all(
+          stateCodes.map(async (code : any) => {
+            const res = await axios.get(`${URLPREFIX}/state/${code}/employer/${employerQuery}`)
+            return res.data
+          })
+        )
+        setEmployerQueryLoading(false)
+        console.log('Employer')
+        console.log(cities.flat())
+        setCityList(cities.flat())
+      }
+    }
+
+    fetchEmployerData();
+  }
+
+  const handleSubmitJob = () => {
+    const fetchJobData = async () => {
+      if (filterOption == 'By State') {
+        setJobQueryLoading(true)
+        const { data } = await axios.get(`${URLPREFIX}/country/job/${jobQuery}`);
+        setJobQueryLoading(false)
+        console.log('Job')
+        console.log(data)
+        setStateList(data);
+      } else if (filterOption == 'By City') {
+        const stateCodes = stateList.map( (state : any) => {
+          return state.state_code;
+        })
+        setJobQueryLoading(true)
+        const cities = await Promise.all(
+          stateCodes.map(async (code : any) => {
+            const res = await axios.get(`${URLPREFIX}/state/${code}/job/${jobQuery}`)
+            return res.data
+          })
+        )
+        setJobQueryLoading(false)
+        console.log('Job')
+        console.log(cities.flat())
+        setCityList(cities.flat())
+      }
+    }
+
+    fetchJobData();
+  }
+
+  useEffect(() => {
+    if (filteringOption !== 'By Employer' && filteringOption !== 'By Job') {
+      const fetchStates = async () => {
+        const { data } = await axios.get(`${URLPREFIX}/country/all`);
+        setStateList(data);
+      }
+  
+      fetchStates();
+
+      const fetchCities = async () => {
+
+        const stateCodes = stateList.map( (state : any) => {
+          return state.state_code;
+        })
+        const cities = await Promise.all(
+          stateCodes.map(async (code : any) => {
+            const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
+            return res.data
+          })
+        )
+        setCityList(cities.flat());
+      }
+  
+      fetchCities();
+      
+    }
+  }, [filteringOption])
+
   return (
     <Box>
       <AppBar
         sx={{
-          background: 'white',
+          background: 'transparent',
           boxShadow: 'none',
         }}
         position="fixed"
@@ -685,72 +885,6 @@ function HomePage() {
               setOption={setFilterOption}
               selected={filterOption}
             />
-            <CategoryOption
-              label="By Employer"
-              icon={
-                <BadgeIcon
-                  sx={{
-                    color: filterOption === 'By Employer' ? '#3B82F6' : 'black',
-                  }}
-                  fontSize="large"
-                />
-              }
-              setOption={setFilterOption}
-              selected={filterOption}
-            />
-            <CategoryOption
-              label="By Cost"
-              icon={
-                <PaidIcon
-                  sx={{
-                    color: filterOption === 'By Cost' ? '#3B82F6' : 'black',
-                  }}
-                  fontSize="large"
-                />
-              }
-              setOption={setFilterOption}
-              selected={filterOption}
-            />
-            <CategoryOption
-              label="By Jobs"
-              icon={
-                <WorkIcon
-                  sx={{
-                    color: filterOption === 'By Jobs' ? '#3B82F6' : 'black',
-                  }}
-                  fontSize="large"
-                />
-              }
-              setOption={setFilterOption}
-              selected={filterOption}
-            />
-            <CategoryOption
-              label="By Growth"
-              icon={
-                <AutoGraphIcon
-                  sx={{
-                    color: filterOption === 'By Growth' ? '#3B82F6' : 'black',
-                  }}
-                  fontSize="large"
-                />
-              }
-              setOption={setFilterOption}
-              selected={filterOption}
-            />
-            <CategoryOption
-              label="By Debt"
-              icon={
-                <MoneyOffIcon
-                  sx={{
-                    color: filterOption === 'By Debt' ? '#3B82F6' : 'black',
-                  }}
-                  fontSize="large"
-                  className="option-icon"
-                />
-              }
-              setOption={setFilterOption}
-              selected={filterOption}
-            />
             <Box
               sx={{
                 display: 'flex',
@@ -767,6 +901,7 @@ function HomePage() {
                   boxShadow: '0 2px 4px rgba(0,0,0,0.18)',
                 },
               }}
+              onClick={handleFilterMenuClick}
             >
               <Typography
                 sx={{
@@ -778,12 +913,74 @@ function HomePage() {
                 Filter
               </Typography>
               <Box sx={{ m: 0.3 }} />
-              <TuneIcon
+              <Badge
                 sx={{
-                  color: '#3B82F6',
+                  "& .MuiBadge-badge": {
+                    fontSize: '0.5rem'
+                  }
                 }}
-              />
+               badgeContent={(filteringOption == '') ? 'H1B Score' : filteringOption.replace("By ", "").replace("Rate", "")} color='primary'>
+                <TuneIcon
+                  sx={{
+                    color: '#3B82F6',
+                  }}
+                />
+              </Badge>
             </Box>
+            <FilterMenu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleFilterMenuClose}
+            >
+               <FormControl>
+                <FormLabel sx={{
+                  color: '#3B82F6',
+                  mb: 1,
+                }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <AutoAwesomeIcon
+                      sx={{
+                        color: '#3B82F6',
+                      }}
+                    />
+                    <Box sx={{ m: 0.5 }} />
+                    <Typography
+                    sx={{
+                      fontWeight: 500,
+                    }}
+                    >
+                    Filter to see more relationships
+                    </Typography>
+                  </Box>
+                </FormLabel>
+                <RadioGroup
+                value={filteringOption}
+                >
+                  <Box
+                  sx={{
+                    display: 'flex'
+                  }}>
+                    <FormControlLabel value="By Job" control={<Radio onClick={handleRadioClick} />} label="By Job" />
+                    <FormControlLabel value="By Employer" control={<Radio onClick={handleRadioClick}  />} label="By Employer" />
+                    <FormControlLabel value="By Growth" control={<Radio onClick={handleRadioClick}  />} label="By Growth" />
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex'
+                    }}
+                  >
+                    <FormControlLabel value="By Debt" control={<Radio onClick={handleRadioClick}  />} label="By Debt" />
+                    <FormControlLabel value="By H1B Volume" control={<Radio onClick={handleRadioClick}  />} label="By H1B Volume" />
+                    <FormControlLabel value="By H1B Success Rate" control={<Radio onClick={handleRadioClick}  />} label="By H1B Success Rate" />
+                  </Box>
+                </RadioGroup>
+              </FormControl>
+            </FilterMenu>
           </Toolbar>
         </Container>
         <DataDrawer
@@ -810,6 +1007,108 @@ function HomePage() {
             </IconButton>
           }
         />
+        {filteringOption == 'By Employer' && (
+           <Box
+           sx={{
+             width: 'fit-content',
+             mx: 'auto',
+             background: 'white',
+             border: '1px solid #3B82F6',
+             p: '10px 14px',
+             color: '#3B82F6',
+             borderRadius: '10px',
+             boxShadow:
+               '0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
+             ':hover': {
+               background: 'white',
+               boxShadow: '0 2px 4px rgba(0,0,0,0.18)',
+             },
+             display: 'flex',
+             alignItems: 'center',
+             mt: 2
+           }}
+           >
+             <Typography
+              sx={{
+                fontWeight: '500'
+               }}
+             >
+               Desired Employer:
+             </Typography>
+             <Box sx={{ m: 1}} />
+             <TextField
+             onChange={handleEmployerValue}
+             onKeyDown={(event) => {
+              if (event.key === '13'){
+                 handleSubmitEmployer()  
+              }}}
+              label="Employer Name" variant="standard" 
+              />
+             <IconButton
+              onClick={handleSubmitEmployer}
+             >
+              <SendIcon
+                sx={{
+                  color: '#3B82F6'
+                }}
+               />
+             </IconButton>
+             {employerQueryLoading && (
+              <>
+              <Box sx={{ m : 1}} />
+              <CircularProgress size="1.5rem" color="primary" />
+              </>
+             )}
+           </Box>
+        )}
+        {filteringOption == 'By Job' && (
+           <Box
+           sx={{
+             width: 'fit-content',
+             mx: 'auto',
+             background: 'white',
+             border: '1px solid #3B82F6',
+             p: '10px 14px',
+             color: '#3B82F6',
+             borderRadius: '10px',
+             boxShadow:
+               '0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
+             ':hover': {
+               background: 'white',
+               boxShadow: '0 2px 4px rgba(0,0,0,0.18)',
+             },
+             display: 'flex',
+             alignItems: 'center',
+             mt: 2
+           }}
+           >
+             <Typography
+             sx={{
+              fontWeight: '500'
+             }}
+             >
+               Desired Job:
+             </Typography>
+             <Box sx={{ m: 1}} />
+             <TextField
+             onChange={handleJobValue}
+              label="Job Title" variant="standard" />
+             <IconButton
+              onClick={handleSubmitJob}>
+              <SendIcon
+                sx={{
+                  color: '#3B82F6'
+                }}
+               />
+             </IconButton>
+             {jobQueryLoading && (
+              <>
+              <Box sx={{ m : 1}} />
+              <CircularProgress size="1.5rem" color="primary" />
+              </>
+             )}
+           </Box>
+        )}
       </AppBar>
       <Map
         initialViewState={{
@@ -828,25 +1127,77 @@ function HomePage() {
       >
         {filterOption == 'By State' && (
           <Source type="geojson" data={stateData}>
-            <Layer beforeId="waterway-label" {...StateDataLayer} />
+            {(filteringOption === '' || filteringOption === 'By Employer' || filteringOption === 'By Job') && (
+               <Layer beforeId="waterway-label" {...StateDataLayer} />
+            )}
             <Layer beforeId="waterway-label" {...StateDataLineLayer} />
             <Layer
               beforeId="waterway-label"
               {...StateDataHighlightedLayer}
               filter={filterStates}
             />
+            {filteringOption == 'By Growth' && (
+                <Layer
+                beforeId="waterway-label"
+                {...GrowthDataLayer}
+              />
+            )}
+            {filteringOption == 'By Debt' && (
+                <Layer
+                beforeId="waterway-label"
+                {...DebtDataLayer}
+              />
+              )}
+              {filteringOption == 'By H1B Volume' && (
+                <Layer
+                beforeId="waterway-label"
+                {...VolumeDataLayer}
+              />
+              )}
+              {filteringOption == 'By H1B Success Rate' && (
+                <Layer
+                beforeId="waterway-label"
+                {...SuccessRateLayer}
+              />
+              )}
           </Source>
         )}
         {filterOption == 'By City' && (
           <>
             <Source type="geojson" data={cityData}>
-              <Layer beforeId="waterway-label" {...StateDataLayer} />
+              {(filteringOption === '' || filteringOption === 'By Employer' || filteringOption === 'By Job') && (
+                <Layer beforeId="waterway-label" {...StateDataLayer} />
+              )}
               <Layer beforeId="waterway-label" {...StateDataLineLayer} />
               <Layer
                 beforeId="waterway-label"
                 {...StateDataHighlightedLayer}
                 filter={filterStates}
               />
+              {filteringOption == 'By Growth' && (
+                <Layer
+                beforeId="waterway-label"
+                {...GrowthDataLayer}
+              />
+              )}
+              {filteringOption == 'By Debt' && (
+                <Layer
+                beforeId="waterway-label"
+                {...DebtDataLayer}
+              />
+              )}
+              {filteringOption == 'By H1B Volume' && (
+                <Layer
+                beforeId="waterway-label"
+                {...VolumeDataLayer}
+              />
+              )}
+               {filteringOption == 'By H1B Success Rate' && (
+                <Layer
+                beforeId="waterway-label"
+                {...SuccessRateLayer}
+              />
+              )}
             </Source>
           </>
         )}

@@ -5,6 +5,7 @@ import GradeIcon from '@mui/icons-material/Grade';
 import PaidIcon from '@mui/icons-material/Paid';
 import WorkIcon from '@mui/icons-material/Work';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 
 interface StateToolTipProps {
   hoverInfo: any;
@@ -71,6 +72,18 @@ function StateToolTip({ hoverInfo }: StateToolTipProps) {
           size="small"
           icon={<AutoGraphIcon sx={{ color: '#3B82F6 !important' }} />}
         />
+      </Stack>
+      <Box sx={{ m: 1 }} />
+      <Stack direction="row" spacing={1}>
+        <Chip
+            label={'Debt Score: ' + hoverInfo?.feature?.properties.debt}
+            variant="outlined"
+            sx={{
+              border: '1px solid #3B82F6',
+            }}
+            size="small"
+            icon={<MoneyOffIcon sx={{ color: '#3B82F6 !important' }} />}
+          />
       </Stack>
     </Box>
   );
