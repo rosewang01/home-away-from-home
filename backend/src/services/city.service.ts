@@ -1,6 +1,7 @@
 import {redisGet, redisSet} from "../utils/redis.js";
 import type ICity from "../models/city.model.js";
 import {sqlQuery} from "../utils/sql.js";
+import { toTitleCase } from "../utils/titleCase.js";
 
 const addSimilarCities = (cities: ICity[]): ICity[] => {
   const sortedCities = cities.sort((a, b) => b.h1b_volume - a.h1b_volume);
@@ -138,7 +139,7 @@ const getAllCitiesWithState = async (stateCode: string): Promise<ICity[]> => {
 }
 
 const getCitiesWithJobFilter = async (stateCode: string, jobFilter: string): Promise<ICity[]> => {
-  const cached = await redisGet(`cities/${stateCode}/jobs/${jobFilter}`);
+  const cached = await redisGet(`cities/${stateCode}/jobs/${toTitleCase(jobFilter)}`);
   if (cached != null) {
     return JSON.parse(cached) as ICity[];
   }
@@ -155,7 +156,7 @@ const getCitiesWithJobFilter = async (stateCode: string, jobFilter: string): Pro
   ), metro_region_job_data (metro_region, salary, job_title, emp_name, case_status) AS (
       SELECT metro_region, prevailing_yearly_wage AS average_salary, job_title, emp_name, case_status FROM h1b_case
       JOIN city c on c.state_code = h1b_case.work_state and c.city_name = h1b_case.work_city
-      WHERE metro_region_state_code = '${stateCode}' AND job_title LIKE '%${jobFilter}%'
+      WHERE metro_region_state_code = '${stateCode}' AND job_title LIKE '%${toTitleCase(jobFilter)}%'
   ), total_job_data(metro_region, num_jobs, average_salary) AS (
       SELECT metro_region, COUNT(IF(case_status = 'C', 1, NULL)), AVG(salary)
       FROM metro_region_job_data
@@ -184,12 +185,12 @@ const getCitiesWithJobFilter = async (stateCode: string, jobFilter: string): Pro
     city_state_code: stateCode,
   }));
 
-  await redisSet(`cities/${stateCode}/all`, JSON.stringify(processedCities));
+  await redisSet(`cities/${stateCode}/jobs/${toTitleCase(jobFilter)}`, JSON.stringify(processedCities));
   return processedCities;
 }
 
 const getCitiesWithEmployerFilter = async (stateCode: string, employerFilter: string): Promise<ICity[]> => {
-  const cached = await redisGet(`cities/${stateCode}/employers/${employerFilter}`);
+  const cached = await redisGet(`cities/${stateCode}/employers/${employerFilter.toUpperCase()}`);
   if (cached != null) {
     return JSON.parse(cached) as ICity[];
   }
@@ -235,7 +236,7 @@ const getCitiesWithEmployerFilter = async (stateCode: string, employerFilter: st
       city_state_code: stateCode,
   }));
 
-  await redisSet(`cities/${stateCode}/employers/${employerFilter}`, JSON.stringify(processedCities));
+  await redisSet(`cities/${stateCode}/employers/${employerFilter.toUpperCase()}`, JSON.stringify(processedCities));
   return processedCities;
 }
 

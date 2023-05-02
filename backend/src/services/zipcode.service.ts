@@ -2,9 +2,10 @@ import { sqlQuery } from "../utils/sql.js";
 import type IZipCode from "../models/zipcode.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
 import IState from "../models/state.model.js";
+import { toTitleCase } from "../utils/titleCase.js";
 
 const getAllZipCodes = async (city_name: string): Promise<IZipCode[]> => {
-    const cached = await redisGet(`zipCodes/${city_name}/all`);
+    const cached = await redisGet(`zipCodes/${toTitleCase(city_name)}/all`);
     if (cached != null) {
         return JSON.parse(cached) as IZipCode[];
     }
@@ -12,7 +13,7 @@ const getAllZipCodes = async (city_name: string): Promise<IZipCode[]> => {
     const zipsRaw = await sqlQuery(`
         WITH mr AS (SELECT metro_region, metro_region_state_code
             FROM city
-            WHERE city_name = ${city_name}),
+            WHERE city_name = ${toTitleCase(city_name)}),
         zips AS (SELECT zip_code
             FROM mr JOIN zip_code zc
                 on mr.metro_region = zc.metro_region
@@ -22,7 +23,7 @@ const getAllZipCodes = async (city_name: string): Promise<IZipCode[]> => {
         GROUP BY h.zip_code;
     `);
 
-    await redisSet(`zipCodes/${city_name}/all`, JSON.stringify(zipsRaw));
+    await redisSet(`zipCodes/${toTitleCase(city_name)}/all`, JSON.stringify(zipsRaw));
     return zipsRaw as IZipCode[];
 };
 
@@ -35,7 +36,7 @@ const getBestGrowthZipCodes = async (city_name: string): Promise<IZipCode[]> => 
     const zipsRaw = await sqlQuery(`
         WITH mr AS (SELECT metro_region, metro_region_state_code
             FROM city
-            WHERE city_name = ${city_name}),
+            WHERE city_name = ${toTitleCase(city_name)}),
         zips AS (SELECT zip_code
             FROM mr JOIN zip_code zc
                 on mr.metro_region = zc.metro_region
@@ -48,12 +49,12 @@ const getBestGrowthZipCodes = async (city_name: string): Promise<IZipCode[]> => 
         LIMIT 5;
     `);
 
-    await redisSet(`zipCodes/${city_name}/growth`, JSON.stringify(zipsRaw));
+    await redisSet(`zipCodes/${toTitleCase(city_name)}/growth`, JSON.stringify(zipsRaw));
     return zipsRaw as IZipCode[];
 }
 
 const getBestCostZipCodes = async (city_name: string): Promise<IZipCode[]> => {
-    const cached = await redisGet(`zipCodes/${city_name}/cost`);
+    const cached = await redisGet(`zipCodes/${toTitleCase(city_name)}/cost`);
     if (cached != null) {
         return JSON.parse(cached) as IZipCode[];
     }
@@ -61,7 +62,7 @@ const getBestCostZipCodes = async (city_name: string): Promise<IZipCode[]> => {
     const zipsRaw = await sqlQuery(`
         WITH mr AS (SELECT metro_region, metro_region_state_code
             FROM city
-            WHERE city_name = ${city_name}),
+            WHERE city_name = ${toTitleCase(city_name)}),
         zips AS (SELECT zip_code
             FROM mr JOIN zip_code zc
                 on mr.metro_region = zc.metro_region
@@ -74,7 +75,7 @@ const getBestCostZipCodes = async (city_name: string): Promise<IZipCode[]> => {
         LIMIT 5;
     `);
 
-    await redisSet(`zipCodes/${city_name}/cost`, JSON.stringify(zipsRaw));
+    await redisSet(`zipCodes/${toTitleCase(city_name)}/cost`, JSON.stringify(zipsRaw));
     return zipsRaw as IZipCode[];
 }
 

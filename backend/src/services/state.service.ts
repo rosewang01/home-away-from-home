@@ -1,6 +1,7 @@
 import {sqlQuery} from "../utils/sql.js";
 import type IState from "../models/state.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
+import { toTitleCase } from "../utils/titleCase.js";
 
 const addSimilarStates = (states: IState[]): IState[] => {
   const sortedStates = states.sort((a, b) => b.h1b_volume - a.h1b_volume);
@@ -77,7 +78,7 @@ const getAllStates = async (): Promise<IState[]> => {
 };
 
 const getStatesWithJobFilter = async (jobFilter: string): Promise<IState[]> => {
-  const cached = await redisGet(`states/job/${jobFilter}`);
+  const cached = await redisGet(`states/job/${toTitleCase(jobFilter)}`);
   if (cached != null) {
     return JSON.parse(cached) as IState[];
   }
@@ -93,12 +94,12 @@ const getStatesWithJobFilter = async (jobFilter: string): Promise<IState[]> => {
   ), total_job_data(state_code, h1b_volume, h1b_success_rate, average_salary) AS (
       SELECT work_state, COUNT(*), COUNT(IF(case_status = 'C', 1, NULL))/COUNT(*), AVG(prevailing_yearly_wage)
       FROM h1b_case
-      WHERE job_title LIKE '%${jobFilter}%'
+      WHERE job_title LIKE '%${toTitleCase(jobFilter)}%'
       GROUP BY work_state
   ), emp_data (state_code, emp_name, average_salary, num_jobs, h1b_success_rate) AS (
       SELECT work_state, emp_name, AVG(prevailing_yearly_wage),COUNT(IF(case_status = 'C', 1, NULL)),COUNT(IF(case_status = 'C', 1, NULL)) / COUNT(*)
       FROM h1b_case
-      WHERE job_title LIKE '%${jobFilter}%'
+      WHERE job_title LIKE '%${toTitleCase(jobFilter)}%'
       GROUP BY work_state, emp_name
   ), top_employers (state_code, top_emps) AS (
       SELECT state_code, GROUP_CONCAT(CONCAT(emp_name, ' (', ROUND(average_salary), ', ', ROUND(h1b_success_rate * 100), '%)') ORDER BY num_jobs DESC SEPARATOR '; ') AS top_emps FROM (
@@ -118,7 +119,7 @@ const getStatesWithJobFilter = async (jobFilter: string): Promise<IState[]> => {
 
   const processedStates = addSimilarStates(statesRaw as IState[]);
 
-  await redisSet(`states/job/${jobFilter}`, JSON.stringify(processedStates));
+  await redisSet(`states/job/${toTitleCase(jobFilter)}`, JSON.stringify(processedStates));
 
   return processedStates;
 }
