@@ -5,6 +5,11 @@ import type ICityCount from "../models/cityCount.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
 import { toTitleCase } from "../utils/titleCase.js";
 
+/**
+ * This function retrieves job data from a database and caches it in Redis for future use.
+ * @returns The function `getAllJobsData` returns a Promise that resolves to an array of objects of
+ * type `IJob`.
+ */
 const getAllJobsData = async (): Promise<IJob[]> => {
     const cached = await redisGet(`jobs/all`);
     if (cached != null) {
@@ -25,6 +30,14 @@ const getAllJobsData = async (): Promise<IJob[]> => {
     return jobsRaw as IJob[];
 };
 
+/**
+ * This function retrieves the top 5 employers for a given job title from a SQL database and caches the
+ * results using Redis.
+ * @param {string} job_name - A string representing the name of a job title. This function retrieves
+ * the top 5 employers who have filed the most H1B visa applications for this job title.
+ * @returns The function `getBestEmployersByJobData` returns a Promise that resolves to an array of
+ * objects of type `IEmployerCount`.
+ */
 const getBestEmployersByJobData = async (job_name: string): Promise<IEmployerCount[]> => {
     const cached = await redisGet(`jobs/${toTitleCase(job_name)}/employers`);
     if (cached != null) {
@@ -44,6 +57,13 @@ const getBestEmployersByJobData = async (job_name: string): Promise<IEmployerCou
     return jobsRaw as IEmployerCount[];
 };
 
+/**
+ * This is a TypeScript function that retrieves the top 5 cities with the highest number of job cases
+ * for a given job title from a SQL database and caches the result using Redis.
+ * @param {string} job_name - a string representing the name of a job title.
+ * @returns The function `getBestCitiesByJobData` returns a Promise that resolves to an array of
+ * objects of type `ICityCount`.
+ */
 const getBestCitiesByJobData = async (job_name: string): Promise<ICityCount[]> => {
     const cached = await redisGet(`jobs/${toTitleCase(job_name)}/cities`);
     if (cached != null) {
