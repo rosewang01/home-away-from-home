@@ -1,3 +1,9 @@
+/**
+ * Function that turns an input string into itself but in Title Case
+ * @param str 
+ * @returns str in Title Case
+ */
+
 const toTitleCase = (str: string) => {
     return str
       .toLowerCase()

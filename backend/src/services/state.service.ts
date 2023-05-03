@@ -3,6 +3,11 @@ import type IState from "../models/state.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
 import { toTitleCase } from "../utils/titleCase.js";
 
+/**
+ * Fills in the "Related States" field by finding states that follow the outputted states in sorted order
+ * @param states 
+ * @returns appends similar/related states to the IStates[]
+ */
 const addSimilarStates = (states: IState[]): IState[] => {
   const sortedStates = states.sort((a, b) => b.h1b_volume - a.h1b_volume);
   return states.map((state: IState) => {
@@ -21,6 +26,20 @@ const addSimilarStates = (states: IState[]): IState[] => {
     return state;
   })
 }
+
+/**
+ * Gets all states in the country
+ * @returns all summary statistics for each state
+ * Summary Statistics: 
+ * { state_name, 
+ *   average_housing_price, 
+ *   average_housing_price_growth, 
+ *   h1b_volume,
+ *   h1b_success_rate, 
+ *   average_salary, 
+ *   top_jobs,
+ *   top_employers }
+ */
 
 const getAllStates = async (): Promise<IState[]> => {
   const cached = await redisGet("states/all");
@@ -81,6 +100,20 @@ const getAllStates = async (): Promise<IState[]> => {
   return processedStates;
 };
 
+/**
+ * Gets all states in the country, filtered by a given job
+ * @param jobFilter
+ * @returns all summary statistics for each state
+ * Summary Statistics: 
+ * { state_name, 
+ *   average_housing_price, 
+ *   average_housing_price_growth, 
+ *   h1b_volume,
+ *   h1b_success_rate, 
+ *   average_salary, 
+ *   top_employers }
+ */
+
 const getStatesWithJobFilter = async (jobFilter: string): Promise<IState[]> => {
   const cached = await redisGet(`states/job/${toTitleCase(jobFilter)}`);
   if (cached != null) {
@@ -128,6 +161,20 @@ const getStatesWithJobFilter = async (jobFilter: string): Promise<IState[]> => {
 
   return processedStates;
 }
+
+/**
+ * Gets all states in the country, filtered by a given employer
+ * @param employerFilter
+ * @returns all summary statistics for each state
+ * Summary Statistics: 
+ * { state_name, 
+ *   average_housing_price, 
+ *   average_housing_price_growth, 
+ *   h1b_volume,
+ *   h1b_success_rate, 
+ *   average_salary, 
+ *   top_jobs }
+ */
 
 const getStatesWithEmployerFilter = async (employerFilter: string): Promise<IState[]> => {
   const cached = await redisGet(`states/employer/${employerFilter}`);

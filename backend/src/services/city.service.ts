@@ -3,6 +3,12 @@ import type ICity from "../models/city.model.js";
 import {sqlQuery} from "../utils/sql.js";
 import { toTitleCase } from "../utils/titleCase.js";
 
+/**
+ * Fills in the "Related Cities" field by finding cities that follow the outputted cities in sorted order
+ * @param cities 
+ * @returns appends similar/related cities to the ICity[]
+ */
+
 const addSimilarCities = (cities: ICity[]): ICity[] => {
   const sortedCities = cities.sort((a, b) => b.h1b_volume - a.h1b_volume);
   return cities.map((city: ICity) => {
@@ -21,6 +27,20 @@ const addSimilarCities = (cities: ICity[]): ICity[] => {
     return city;
   })
 }
+
+/**
+ * Gets all cities in the country
+ * @returns all summary statistics for each city
+ * Summary Statistics: 
+ * { city_name, 
+ *   average_housing_price, 
+ *   average_housing_price_growth, 
+ *   h1b_volume,
+ *   h1b_success_rate, 
+ *   average_salary, 
+ *   top_jobs,
+ *   top_employers }
+ */
 
 const getAllCities = async (): Promise<ICity[]> => {
   const cached = await redisGet(`cities/all`);
@@ -76,6 +96,21 @@ JOIN metro_region_final_data sjd ON mhd.metro_region = sjd.metro_region;
   await redisSet(`cities/all`, JSON.stringify(processedCities));
   return processedCities;
 }
+
+/**
+ * Gets all cities in a given state.
+ * @param stateCode
+ * @returns all summary statistics for each city
+ * Summary Statistics: 
+ * { city_name, 
+ *   average_housing_price, 
+ *   average_housing_price_growth, 
+ *   h1b_volume,
+ *   h1b_success_rate, 
+ *   average_salary, 
+ *   top_jobs,
+ *   top_employers }
+ */
 
 const getAllCitiesWithState = async (stateCode: string): Promise<ICity[]> => {
   const cached = await redisGet(`cities/${stateCode}/all`);
@@ -138,6 +173,21 @@ const getAllCitiesWithState = async (stateCode: string): Promise<ICity[]> => {
   return processedCities;
 }
 
+/**
+ * Gets all cities in a given state, filtered for a given job.
+ * @param state_code
+ * @param jobFilter
+ * @returns all summary statistics for each city
+ * Summary Statistics: 
+ * { city_name, 
+ *   average_housing_price, 
+ *   average_housing_price_growth, 
+ *   h1b_volume,
+ *   h1b_success_rate, 
+ *   average_salary,
+ *   top_employers }
+ */
+
 const getCitiesWithJobFilter = async (stateCode: string, jobFilter: string): Promise<ICity[]> => {
   const cached = await redisGet(`cities/${stateCode}/jobs/${toTitleCase(jobFilter)}`);
   if (cached != null) {
@@ -188,6 +238,21 @@ const getCitiesWithJobFilter = async (stateCode: string, jobFilter: string): Pro
   await redisSet(`cities/${stateCode}/jobs/${toTitleCase(jobFilter)}`, JSON.stringify(processedCities));
   return processedCities;
 }
+
+/**
+ * Gets all cities in a given state, filtered for a given employer
+ * @param state_code
+ * @param employerFilter
+ * @returns all summary statistics for each city
+ * Summary Statistics: 
+ * { city_name, 
+ *   average_housing_price, 
+ *   average_housing_price_growth, 
+ *   h1b_volume,
+ *   h1b_success_rate, 
+ *   average_salary, 
+ *   top_jobs }
+ */
 
 const getCitiesWithEmployerFilter = async (stateCode: string, employerFilter: string): Promise<ICity[]> => {
   const cached = await redisGet(`cities/${stateCode}/employers/${employerFilter.toUpperCase()}`);
