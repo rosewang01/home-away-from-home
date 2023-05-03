@@ -393,7 +393,7 @@ function HomePage() {
         state.h1b_success_rate = 0
       }
 
-      if (state.h1b_volumne == undefined) {
+      if (state.h1b_volume == undefined) {
         state.h1b_volume = 0
       }
       state.score = (state.average_salary + 
@@ -1364,6 +1364,7 @@ function HomePage() {
         onDrag={onDrag}
         onMouseOut={() => setHoverInfo(null)}
         ref={mapRef}
+        mapboxAccessToken={'pk.eyJ1IjoiYmFjaHRyYW4yMiIsImEiOiJjbGdtcm9heXMwM2x1M3BwaHExcHgza3A2In0.HXUhBETMbJMJFTEu11dBWw'}
       >
         {filterOption == 'By State' && (
           <Source type="geojson" data={stateData}>

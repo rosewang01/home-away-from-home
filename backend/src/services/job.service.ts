@@ -28,9 +28,7 @@ const getAllJobsData = async (): Promise<IJob[]> => {
         FROM h1b_case
         GROUP BY job_title
         HAVING COUNT(*) >= 100
-        ORDER BY h1b_success_rate DESC, average_salary DESC
-        LIMIT 10;
-    `);
+        ORDER BY h1b_success_rate DESC, average_salary DESC`);
 
     await redisSet(`jobs/all`, JSON.stringify(jobsRaw));
     return jobsRaw as IJob[];

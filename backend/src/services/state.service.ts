@@ -47,6 +47,8 @@ const getAllStates = async (): Promise<IState[]> => {
     return JSON.parse(cached) as IState[];
   }
 
+  console.log("Getting States...")
+
   const statesRaw = await sqlQuery(`
   WITH zip_code_housing_data (zip_code, average_housing_price, average_housing_price_growth) AS (
       SELECT zip_code, AVG(median_sale_price), AVG(median_sale_price_yoy) FROM housing_data
@@ -88,6 +90,8 @@ const getAllStates = async (): Promise<IState[]> => {
     JOIN state_final_data sfd ON shd.state_code = sfd.state_code
     JOIN state s ON shd.state_code = s.state_code;
   `);
+
+  console.log("Gotten States...")
 
   const processedStates = addSimilarStates(statesRaw as IState[]);
 
