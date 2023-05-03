@@ -497,11 +497,11 @@ function HomePage() {
           feature.properties.related = targetObj.similar_cities?.map((state : any) =>  {
 
             const targetState = cityList?.find( (obj : any) => {
-              return obj.city_name === state
+              return obj.city_name == state
             })
 
             return {
-              name: targetState.state_name,
+              name: targetState.city_name,
               score: normalize(targetState.score, maxValue, minValue),
               cost: Math.round(targetState.average_housing_price / 1000),
               salary: Math.round(targetState.average_salary / 1000),
