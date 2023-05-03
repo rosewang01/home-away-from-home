@@ -5,6 +5,15 @@ import type ICityCount from "../models/cityCount.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
 import { toTitleCase } from "../utils/titleCase.js";
 
+
+/**
+ * gets data on all jobs
+ * @returns jobs in sorted order of success rate and average salary 
+ * Summary Statistics: 
+ * { h1b_success_rate, 
+ *   average_salary }
+ */
+
 const getAllJobsData = async (): Promise<IJob[]> => {
     const cached = await redisGet(`jobs/all`);
     if (cached != null) {
@@ -27,6 +36,12 @@ const getAllJobsData = async (): Promise<IJob[]> => {
     return jobsRaw as IJob[];
 };
 
+/**
+ * gets the best employers for a given job
+ * @param job_name
+ * @returns employers in sorted order of frequency
+ */
+
 const getBestEmployersByJobData = async (job_name: string): Promise<IEmployerCount[]> => {
     const cached = await redisGet(`jobs/${toTitleCase(job_name)}/employers`);
     if (cached != null) {
@@ -46,6 +61,11 @@ const getBestEmployersByJobData = async (job_name: string): Promise<IEmployerCou
     return jobsRaw as IEmployerCount[];
 };
 
+/**
+ * gets the best cities for a given job
+ * @param job_name
+ * @returns cities in sorted order of frequency
+ */
 const getBestCitiesByJobData = async (job_name: string): Promise<ICityCount[]> => {
     const cached = await redisGet(`jobs/${toTitleCase(job_name)}/cities`);
     if (cached != null) {

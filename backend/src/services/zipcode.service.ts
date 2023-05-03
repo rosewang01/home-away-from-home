@@ -1,8 +1,17 @@
 import { sqlQuery } from "../utils/sql.js";
 import type IZipCode from "../models/zipcode.model.js";
 import {redisGet, redisSet} from "../utils/redis.js";
-import IState from "../models/state.model.js";
 import { toTitleCase } from "../utils/titleCase.js";
+
+/**
+ * Gets all zip codes in the given state
+ * @param city_name
+ * @returns all summary statistics for each zip code
+ * Summary Statistics: 
+ * { zip_code, 
+ *   average_housing_price, 
+ *   average_housing_price_growth }
+ */
 
 const getAllZipCodes = async (city_name: string): Promise<IZipCode[]> => {
     const cached = await redisGet(`zipCodes/${toTitleCase(city_name)}/all`);
@@ -26,6 +35,16 @@ const getAllZipCodes = async (city_name: string): Promise<IZipCode[]> => {
     await redisSet(`zipCodes/${toTitleCase(city_name)}/all`, JSON.stringify(zipsRaw));
     return zipsRaw as IZipCode[];
 };
+
+/**
+ * Gets all zip codes in the given state, sorted by growth
+ * @param city_name
+ * @returns all summary statistics for each zip code
+ * Summary Statistics: 
+ * { zip_code, 
+ *   average_housing_price, 
+ *   average_housing_price_growth }
+ */
 
 const getBestGrowthZipCodes = async (city_name: string): Promise<IZipCode[]> => {
     const cached = await redisGet(`zipCodes/${city_name}/growth`);
@@ -52,6 +71,16 @@ const getBestGrowthZipCodes = async (city_name: string): Promise<IZipCode[]> => 
     await redisSet(`zipCodes/${toTitleCase(city_name)}/growth`, JSON.stringify(zipsRaw));
     return zipsRaw as IZipCode[];
 }
+
+/**
+ * Gets all zip codes in the given state, sorted by cost
+ * @param city_name
+ * @returns all summary statistics for each zip code
+ * Summary Statistics: 
+ * { zip_code, 
+ *   average_housing_price, 
+ *   average_housing_price_growth }
+ */
 
 const getBestCostZipCodes = async (city_name: string): Promise<IZipCode[]> => {
     const cached = await redisGet(`zipCodes/${toTitleCase(city_name)}/cost`);

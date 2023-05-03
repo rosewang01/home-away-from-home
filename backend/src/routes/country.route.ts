@@ -9,6 +9,10 @@ import {
   getBestStatesByJob
 } from "../controllers/country.controller.js";
 
+/**
+ * defines the router for each country route that returns state
+ */
+
 const countryRouter = express.Router();
 
 countryRouter.get("/all", getAllStateData);
