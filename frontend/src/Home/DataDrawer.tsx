@@ -57,6 +57,7 @@ function DataDrawer({
         id: index,
         job: job.name,
         avgSalary: '$' + job.avgSalary + 'K',
+        success_rate: job.success_rate,
       });
     });
     setJobsData(job_data);
@@ -66,7 +67,7 @@ function DataDrawer({
       companies_data.push({
         id: index,
         company: company.name,
-        success_rate: company.success_rate + '%',
+        success_rate: company.success_rate,
         avgSalary: '$' + company.avgSalary + 'K',
       });
     });
@@ -262,6 +263,7 @@ function DataDrawer({
           rows={jobsData}
           columns={[
             { field: 'job', headerName: 'Job', flex: 1 },
+            { field: 'success_rate', headerName: 'H1B Success Rate', flex: 1 },
             { field: 'avgSalary', headerName: 'Average Salary', flex: 1 },
           ]}
         />

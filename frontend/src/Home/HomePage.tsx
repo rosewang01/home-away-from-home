@@ -25,7 +25,8 @@ import {
   Icon,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  Modal
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import SendIcon from '@mui/icons-material/Send';
@@ -68,6 +69,8 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
+import { DataGrid } from '@mui/x-data-grid';
+import { maxHeight } from '@mui/system';
 
 /* The above code is a React component that renders a map with different layers based on the selected
 filter option. It fetches data from two different URLs containing GeoJSON files, modifies the data
@@ -76,6 +79,19 @@ also includes a search bar, a submit button, and a menu button in the app bar. W
 clicked on the map, a data drawer is opened with information about the clicked feature. The
 component uses various React hooks such as useState, useRef, useCallback, and useEffect to manage
 state and handle events. */
+
+
+const modalStyle = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
 
 const FilterMenu = ( props : MenuProps) => (
   <Menu
@@ -216,10 +232,10 @@ function HomePage() {
     var normalization = stateList.map( (state: any) => {
       state.score = (state.average_housing_price + state.average_salary + 
         state.h1b_success_rate + state.average_housing_price_growth +
-        state.h1b_volume + state.num_jobs)
+        state.h1b_volume)
       return (state.average_housing_price + state.average_salary + 
         state.h1b_success_rate + state.average_housing_price_growth +
-        state.h1b_volume + state.num_jobs)
+        state.h1b_volume)
     })
 
     var normalized_H1B = stateList.map( (state : any) => {
@@ -243,59 +259,93 @@ function HomePage() {
     )
       .then((resp) => resp.json())
       .then((json) => {
+        var newFeatures : any[] = []
         json.features.forEach((feature: any, index: any) => {
+          console.log(stateList)
           var targetObj = stateList?.find( (obj : any) => {
             return obj.state_name === feature.properties.name
           })
-          feature.properties.debt = Math.round( targetObj.average_housing_price / targetObj.average_salary)
-          if (feature.properties.debt == Infinity) {
-            feature.properties.debt = 'No info'
-          }
-          feature.properties.H1B_volume_normalized = normalize(targetObj.h1b_volume, maxH1BValue, minH1BValue)
-          feature.properties.state_code = targetObj.state_code;
-          feature.properties.score = normalize(targetObj.score, maxValue, minValue);
-          feature.properties.cost = Math.round(targetObj.average_housing_price / 1000);
-          feature.properties.jobs = 'SWE, PM, DS';
-          feature.properties.growth = Math.round(targetObj.average_housing_price_growth * 100);
-          feature.properties.H1B_volume = targetObj.h1b_volume;
-          feature.properties.H1B_success_rate = Math.round(targetObj.h1b_success_rate * 100);
-          feature.properties.H1B_success_rate_normalized = Math.round(targetObj.h1b_success_rate * 10);
-          feature.properties.salary = Math.round(targetObj.average_salary / 1000);
-          feature.properties.top_jobs = targetObj.top_jobs?.split(";").map((job : any) => {
-            return {
-              name: job,
-              avgSalary: getRandomNum(100, 500),
-            }
-          })
-          if (targetObj.top_jobs == undefined) {
-            feature.properties.top_jobs = []
-          }
-          feature.properties.top_companies = targetObj.top_employers?.split(";").map((company : any) => {
-            return {
-              name: company,
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
-            }
-          })
-          if (targetObj.top_employers == undefined) {
-            feature.properties.top_companies = []
-          }
-          feature.properties.related = targetObj.similar_states?.map((state : any) =>  {
+          if (targetObj === undefined) {
 
-            const targetState = stateList?.find( (obj : any) => {
-              return obj.state_code === state
+          } else {
+            feature.properties.debt = Math.round( targetObj.average_housing_price / targetObj.average_salary)
+            if (feature.properties.debt == Infinity) {
+              feature.properties.debt = 'No info'
+            }
+            feature.properties.H1B_volume_normalized = normalize(targetObj.h1b_volume, maxH1BValue, minH1BValue)
+            feature.properties.state_code = targetObj.state_code;
+            feature.properties.score = normalize(targetObj.score, maxValue, minValue);
+            feature.properties.cost = Math.round(targetObj.average_housing_price / 1000);
+            feature.properties.jobs = 'SWE, PM, DS';
+            feature.properties.growth = Math.round(targetObj.average_housing_price_growth * 100);
+            feature.properties.H1B_volume = targetObj.h1b_volume;
+            feature.properties.H1B_success_rate = Math.round(targetObj.h1b_success_rate * 100);
+            feature.properties.H1B_success_rate_normalized = Math.round(targetObj.h1b_success_rate * 10);
+            feature.properties.salary = Math.round(targetObj.average_salary / 1000);
+            feature.properties.top_jobs = targetObj.top_jobs?.split(";").map((job : any) => {
+              var regExp = /\(([^)]+)\)/;
+              var matches = regExp.exec(job);
+              let job_name = '';
+              let success_rate = '';
+              let average_salary = 0;
+              if (matches != null) {
+                job_name = job.replace(matches[0], "")
+                success_rate = matches[0].replace("(", "").replace(")", "").split(",")[1]
+                average_salary = Math.round(parseInt(matches[0].replace("(", "").replace(")", "").split(",")[0]) / 1000)
+
+              } else {
+                job_name = 'No Info'
+              }
+              return {
+                name: job_name,
+                avgSalary: average_salary,
+                success_rate: success_rate,
+              }
             })
-
-            return {
-              name: targetState.state_name,
-              score: normalize(targetState.score, maxValue, minValue),
-              cost: Math.round(targetState.average_housing_price / 1000),
-              salary: Math.round(targetState.average_salary / 1000),
+            if (targetObj.top_jobs == undefined) {
+              feature.properties.top_jobs = []
             }
-            
-          });
+            feature.properties.top_companies = targetObj.top_employers?.split(";").map((company : any) => {
+              var regExp = /\(([^)]+)\)/;
+              var matches = regExp.exec(company);
+              let employer_name = '';
+              let success_rate = '';
+              let average_salary = 0;
+              if (matches != null) {
+                employer_name = company.replace(matches[0], "")
+                success_rate = matches[0].replace("(", "").replace(")", "").split(",")[1]
+                average_salary = Math.round(parseInt(matches[0].replace("(", "").replace(")", "").split(",")[0]) / 1000)
+
+              } else {
+                employer_name = 'No Info'
+              }
+              return {
+                name: employer_name,
+                success_rate: success_rate,
+                avgSalary: average_salary,
+              }
+            })
+            if (targetObj.top_employers == undefined) {
+              feature.properties.top_companies = []
+            }
+            feature.properties.related = targetObj.similar_states?.map((state : any) =>  {
+
+              const targetState = stateList?.find( (obj : any) => {
+                return obj.state_code === state
+              })
+
+              return {
+                name: targetState.state_name,
+                score: normalize(targetState.score, maxValue, minValue),
+                cost: Math.round(targetState.average_housing_price / 1000),
+                salary: Math.round(targetState.average_salary / 1000),
+              }
+              
+            });
+            newFeatures.push(feature);
+          }
         });
-        console.log(json)
+        json.features = newFeatures;
         setAllStateData(json);
         console.log(json);
       })
@@ -313,14 +363,16 @@ function HomePage() {
         return state.state_code;
       })
       setIsLoadingAllCities(true)
-      const cities = await Promise.all(
-        stateCodes.map(async (code : any) => {
-          const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
-          return res.data
-        })
-      )
+      // const cities = await Promise.all(
+      //   stateCodes.map(async (code : any) => {
+      //     const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
+      //     return res.data
+      //   })
+      // )
+      const cities = await axios.get(`${URLPREFIX}/state/all`);
       setIsLoadingAllCities(false)
-      setCityList(cities.flat());
+      console.log(cities.data)
+      setCityList(cities.data);
     }
 
     fetchCities();
@@ -336,15 +388,20 @@ function HomePage() {
       return;
     }
 
-    console.log(cityList)
-
     var normalization = cityList.map( (state: any) => {
+      if (state.h1b_success_rate == undefined) {
+        state.h1b_success_rate = 0
+      }
+
+      if (state.h1b_volumne == undefined) {
+        state.h1b_volume = 0
+      }
       state.score = (state.average_salary + 
         state.h1b_success_rate +
-        state.h1b_volume + state.num_jobs)
+        state.h1b_volume)
       return (state.average_salary + 
         state.h1b_success_rate +
-        state.h1b_volume + state.num_jobs)
+        state.h1b_volume)
     })
 
     var maxValue = Math.max.apply(null, normalization);
@@ -358,7 +415,7 @@ function HomePage() {
     var minH1BValue = Math.min.apply(null, normalized_H1B);
 
     const normalize = (val : any, max : any, min : any) => {
-      var score = ((val - min) / (max - min)) * 10;
+      var score = ((val - min) / (max - min)) * 100;
       score = parseFloat(score.toFixed(1));
 
       return score; 
@@ -372,7 +429,7 @@ function HomePage() {
         var newFeatures : any[] = []
         json.features.forEach((feature: any, index : any, lis : any) => {
           var targetObj = cityList?.find( (obj : any) => {
-            return obj.metro_region === feature.properties.NAME
+            return obj.city_name === feature.properties.NAME
           })
           if (targetObj === undefined) {
             
@@ -392,19 +449,46 @@ function HomePage() {
           feature.properties.H1B_success_rate_normalized = Math.round(targetObj.h1b_success_rate * 10);
           feature.properties.salary = Math.round(targetObj.average_salary / 1000);
           feature.properties.top_jobs = targetObj.top_jobs?.split(";").map((job : any) => {
+            var regExp = /\(([^)]+)\)/;
+            var matches = regExp.exec(job);
+            let job_name = '';
+            let success_rate = '';
+            let average_salary = 0;
+            if (matches != null) {
+              job_name = job.replace(matches[0], "")
+              success_rate = matches[0].replace("(", "").replace(")", "").split(",")[1]
+              average_salary = Math.round(parseInt(matches[0].replace("(", "").replace(")", "").split(",")[0]) / 1000)
+
+            } else {
+              job_name = 'No Info'
+            }
             return {
-              name: job,
-              avgSalary: getRandomNum(100, 500),
+              name: job_name,
+              avgSalary: average_salary,
+              success_rate: success_rate,
             }
           })
           if (targetObj.top_jobs == undefined) {
             feature.properties.top_jobs = []
           }
           feature.properties.top_companies = targetObj.top_employers?.split(";").map((company : any) => {
+            var regExp = /\(([^)]+)\)/;
+            var matches = regExp.exec(company);
+            let employer_name = '';
+            let success_rate = '';
+            let average_salary = 0;
+            if (matches != null) {
+              employer_name = company.replace(matches[0], "")
+              success_rate = matches[0].replace("(", "").replace(")", "").split(",")[1]
+              average_salary = Math.round(parseInt(matches[0].replace("(", "").replace(")", "").split(",")[0]) / 1000)
+
+            } else {
+              employer_name = 'No Info'
+            }
             return {
-              name: company,
-              success_rate: getRandomNum(1, 100),
-              avgSalary: getRandomNum(100, 500),
+              name: employer_name,
+              success_rate: success_rate,
+              avgSalary: average_salary,
             }
           })
           if (targetObj.top_employers == undefined) {
@@ -413,7 +497,7 @@ function HomePage() {
           feature.properties.related = targetObj.similar_cities?.map((state : any) =>  {
 
             const targetState = cityList?.find( (obj : any) => {
-              return obj.metro_region === state
+              return obj.city_name === state
             })
 
             return {
@@ -431,6 +515,8 @@ function HomePage() {
           }
         });
         json.features = newFeatures;
+        console.log("New City Json")
+        console.log(json)
         setAllCityData(json);
       })
       .catch((err) => console.error('Could not load data', err)); // eslint-disable-line
@@ -512,9 +598,10 @@ function HomePage() {
             return res.data
           })
         )
+        // const cities = await axios.get(`${URLPREFIX}/state/all`);
         setEmployerQueryLoading(false)
         console.log('Employer')
-        console.log(cities.flat())
+        console.log(cities)
         setCityList(cities.flat())
       }
     }
@@ -530,7 +617,9 @@ function HomePage() {
         setJobQueryLoading(false)
         console.log('Job')
         console.log(data)
+        console.log(data.length)
         setStateList(data);
+        console.log("JOb ")
       } else if (filterOption == 'By City') {
         const stateCodes = stateList.map( (state : any) => {
           return state.state_code;
@@ -542,15 +631,55 @@ function HomePage() {
             return res.data
           })
         )
+        // const cities = await axios.get(`${URLPREFIX}/state/all`);
         setJobQueryLoading(false)
         console.log('Job')
-        console.log(cities.flat())
+        console.log(cities)
         setCityList(cities.flat())
       }
     }
 
     fetchJobData();
   }
+
+  const [jobData, setJobData] = useState<any>([])
+  const [employerData, setEmployerData] = useState<any>([])
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      console.log("JOBS DATA")
+      const { data } = await axios.get(`${URLPREFIX}/jobs/all`);
+      const job_data : any[] = []
+      data.forEach( (job : any, index: any) => {
+        job_data.push({
+          id: index,
+          job: job.job_name,
+          avgSalary: Math.round(job.average_salary / 1000).toString() + "K",
+          success_rate: Math.round(job.h1b_success_rate * 100).toString() + "%",
+        })
+      })
+      setJobData(job_data)
+    }
+
+    fetchJobs()
+
+    const fetchEmployers = async () => {
+      const { data } = await axios.get(`${URLPREFIX}/employers/all`);
+      console.log(data)
+      const employer_data : any[] = []
+      data.forEach( (job : any, index: any) => {
+        employer_data.push({
+          id: index,
+          employer: job.employer_name,
+          avgSalary: Math.round(job.average_salary / 1000).toString() + "K",
+          success_rate: Math.round(job.h1b_success_rate * 100).toString() + "%",
+        })
+      })
+      setEmployerData(employer_data)
+    }
+
+    fetchEmployers()
+  }, [])
 
   useEffect(() => {
     if (stateList == undefined || cityList == undefined) {
@@ -566,18 +695,32 @@ function HomePage() {
         })
 
         console.log(stateCodes)
-        const cities = await Promise.all(
-          stateCodes.map(async (code : any) => {
-            const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
-            return res.data
-          })
-        )
-        setCityList(cities.flat());
+        // const cities = await Promise.all(
+        //   stateCodes.map(async (code : any) => {
+        //     const res = await axios.get(`${URLPREFIX}/state/${code}/all`)
+        //     return res.data
+        //   })
+        // )
+        const cities = await axios.get(`${URLPREFIX}/state/all`);
+        setCityList(cities.data);
       }
   
       fetchStates();
     }
   }, [filteringOption])
+
+  const [openModal, setOpenModal] = useState(false);
+  const [modalData, setModalData] = useState<any>({}); 
+  const handleOpenModal = (data : any) => {
+    setModalData(data)
+    setOpenModal(true)
+  };
+
+
+  const handleCloseModal = (data : any) => {
+    setModalData(data)
+    setOpenModal(false)
+  };
 
   return (
     <Box>
@@ -770,7 +913,7 @@ function HomePage() {
               </Stack>
             </Paper>
             </Box>
-            <Button
+            {/* <Button
               endIcon={<SendIcon />}
               size="small"
               variant="text"
@@ -807,7 +950,7 @@ function HomePage() {
               <MenuIcon sx={{ color: '#3B82F6' }} fontSize="medium" />
               <Box sx={{ m: '2px' }} />
               <AccountCircle sx={{ color: '#3B82F6' }} fontSize="large" />
-            </IconButton>
+            </IconButton> */}
           </Toolbar>
         </Container>
         <Container
@@ -935,6 +1078,95 @@ function HomePage() {
                 />
               </Badge>
             </Box>
+            <Button
+              startIcon={<WorkIcon />}
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: '15px',
+                textTransform: 'none',
+                ':hover': {
+                  borderRadius: '40px',
+                },
+              }}
+              onClick={() => {
+                handleOpenModal({
+                  title: 'Employers',
+                  columns: [ 
+                    { field: 'employer', headerName: 'Employer Name', flex: 1 },
+                    { field: 'avgSalary', headerName: 'Average Salary', flex: 1 },
+                    { field: 'success_rate', headerName: 'H1B Success Rate', flex: 1 }
+                  ],
+                  rows: employerData
+                })
+              }}
+            >
+              View all employers
+            </Button>
+            <Button
+              startIcon={<PaidIcon />}
+              size="small"
+              variant="text"
+              sx={{
+                fontSize: '15px',
+                textTransform: 'none',
+                ':hover': {
+                  borderRadius: '40px',
+                },
+              }}
+              onClick={() => {
+                handleOpenModal({
+                  title: 'Jobs',
+                  columns: [ 
+                    { field: 'job', headerName: 'Job Name', flex: 1 },
+                    { field: 'avgSalary', headerName: 'Average Salary', flex: 1 },
+                    { field: 'success_rate', headerName: 'H1B Success Rate', flex: 1 }
+                  ],
+                  rows: jobData
+                })
+              }}
+            >
+              View all jobs
+            </Button>
+            <Modal
+              open={openModal}
+              onClose={handleCloseModal}
+              aria-labelledby="modal-modal-title"
+              aria-describedby="modal-modal-description"
+            >
+              <Box sx={{
+                position: 'absolute' as 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 700,
+                bgcolor: 'background.paper',
+                border: '1px solid #3B82F6',
+                boxShadow:
+                  '0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
+                p: 4,
+                borderRadius: '10px',
+                maxHeight: '800px'
+              }}>
+                <Typography
+                  sx={{
+                    fontSize: '25px',
+                    color: '#3B82F6',
+                    fontWeight: '500',
+                  }}
+                >
+                  {modalData?.title}
+                </Typography>
+                <Box sx={{ m: 2}} />
+                <DataGrid
+                columns={modalData?.columns}
+                rows={modalData?.rows}
+                sx={{
+                  maxHeight: '600px'
+                }}
+                />
+              </Box>
+            </Modal>
             <FilterMenu
             anchorEl={anchorEl}
             open={open}
