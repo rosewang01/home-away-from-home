@@ -19,7 +19,7 @@ const createExpressApp = (): express.Express => {
       extended: true,
     })
   );
-  app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+  app.use(cors({ credentials: true, origin: "localhost:3000" }));
   app.use(cookieParser(process.env.COOKIE_SECRET));
 
   // Use express-session to maintain sessions

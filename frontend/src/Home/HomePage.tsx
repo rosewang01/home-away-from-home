@@ -1352,6 +1352,7 @@ function HomePage() {
         )}
       </AppBar>
       <Map
+        mapboxAccessToken={'pk.eyJ1IjoiYmFjaHRyYW4yMiIsImEiOiJjbGdtcm9heXMwM2x1M3BwaHExcHgza3A2In0.HXUhBETMbJMJFTEu11dBWw'}
         initialViewState={{
           longitude: -122.4,
           latitude: 37.8,
