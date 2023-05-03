@@ -36,6 +36,8 @@ function DataDrawer({
   info,
   cancelButton,
 }: DataDrawerProps) {
+
+  // State to manage position at which drawer appears
   const [state, setState] = React.useState({
     top: false,
     left: false,
@@ -43,13 +45,16 @@ function DataDrawer({
     right: false,
   });
 
+  // Function to toggle a drawer at a specfic anchor/position
   const toggleDrawer = (anchor: Anchor, open: boolean) => {
     setState({ ...state, [anchor]: open });
   };
 
+  // Job and Companies Data to be parsed in the DataGrid Table
   const [jobsData, setJobsData] = useState<any[]>([]);
   const [companiesData, setCompaniesData] = useState<any[]>([]);
 
+  // Hook to push properties
   useEffect(() => {
     var job_data: any[] = [];
     info?.properties.top_jobs.forEach((job: any, index: any) => {

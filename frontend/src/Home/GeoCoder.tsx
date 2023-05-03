@@ -22,6 +22,7 @@ type GeocoderControlProps = Omit<GeocoderOptions, 'accessToken' | 'mapboxgl' | '
 };
 
 /* eslint-disable complexity,max-statements */
+// Geocoder component of the search bar to display results
 export default function GeocoderControl(props: GeocoderControlProps) {
   const [marker, setMarker] = useState<any>(null);
   const [results, setResults] = useState<any>([]);

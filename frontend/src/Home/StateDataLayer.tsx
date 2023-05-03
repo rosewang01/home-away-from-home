@@ -2,6 +2,8 @@
 import type { FillLayer, LineLayer, HeatmapLayer } from 'react-map-gl';
 
 // For more information on data-driven styles, see https://www.mapbox.com/help/gl-dds-ref/
+
+// File storing each data layer that we see on the map
 export const StateDataLayer: FillLayer = {
   id: 'data',
   type: 'fill',

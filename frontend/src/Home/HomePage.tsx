@@ -118,6 +118,7 @@ const FilterMenu = ( props : MenuProps) => (
   />
 )
 
+// Home Page that display the page of the main app
 function HomePage() {
   const [filterOption, setFilterOption] = useState('By State');
   const [allStateData, setAllStateData] = useState();
