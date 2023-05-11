@@ -14,6 +14,7 @@ user-friendly solution that addresses the needs of H-1B visa holders and helps t
 ### Public URL
 
 Check out the site [here](http://ec2-34-230-151-76.compute-1.amazonaws.com/home)!
+Note this url might no longer work due to our site being hosted using an AWS Learner account, which times out after 5 hours.
 
 ### Setup
 Backend:
